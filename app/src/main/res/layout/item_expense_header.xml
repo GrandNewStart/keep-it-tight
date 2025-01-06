@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.button.MaterialButton xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:backgroundTint="@color/transparent"
+    android:elevation="0dp"
+    android:insetTop="0dp"
+    android:insetBottom="0dp"
+    android:padding="8dp"
+    android:textAlignment="textStart"
+    android:textColor="@color/lightPrimaryText"
+    android:textFontWeight="900"
+    android:textSize="18sp"
+    app:cornerRadius="0dp"
+    app:rippleColor="@color/lightSecondaryBackground"
+    tools:text="HELLO" />

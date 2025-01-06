@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">돌아보다</string>
+    <string name="dark_mode">다크 모드</string>
+    <string name="light_mode">라이트 모드</string>
+    <string name="cost_input_hint">얼마를 썼느냐</string>
+    <string name="expense_name">왜 썼느냐</string>
+    <string name="enter">입력</string>
+    <string name="summary">요약</string>
+    <string name="this_year">올해</string>
+    <string name="this_month">이번 달</string>
+    <string name="today">오늘</string>
+    <string name="this_day">이날</string>
+    <string name="settings">설정</string>
+    <string name="reset">초기화</string>
+    <string name="add_tag">태그 추가</string>
+    <string name="no_tag">태그 없음</string>
+    <string name="all_tag">전체</string>
+    <string name="enter_name">이름을 입력하세요</string>
+    <string name="enter_cost">액수를 입력하세요</string>
+    <string name="name">이름</string>
+    <string name="tag">태그</string>
+    <string name="cost">금액</string>
+    <string name="duplicate_name">이미 존재하는 이름입니다</string>
+    <string name="delete">삭제</string>
+    <string name="confirm">확인</string>
+    <string name="deleted_tag">삭제된 태그</string>
+    <string name="manage_tag">태그 관리</string>
+    <string name="save">저장</string>
+</resources>
