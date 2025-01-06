@@ -9,6 +9,7 @@ appcompat = "1.7.0"
 material = "1.10.0"
 activity = "1.8.0"
 constraintlayout = "2.1.4"
+recyclerviewFastscroll = "2.0.1"
 roomCommon = "2.6.1"
 roomKtx = "2.6.1"
 roomRuntime = "2.5.0"
@@ -30,6 +31,7 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+recyclerview-fastscroll = { module = "com.simplecityapps:recyclerview-fastscroll", version.ref = "recyclerviewFastscroll" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
