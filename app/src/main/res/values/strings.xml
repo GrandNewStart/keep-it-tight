@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">돌아보다</string>
+    <string name="app_name">정신차려</string>
     <string name="dark_mode">다크 모드</string>
     <string name="light_mode">라이트 모드</string>
     <string name="cost_input_hint">얼마를 썼느냐</string>
