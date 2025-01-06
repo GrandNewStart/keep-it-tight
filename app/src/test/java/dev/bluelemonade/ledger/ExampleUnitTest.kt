@@ -1,4 +1,4 @@
-package dev.jinwoo.ledger
+package dev.bluelemonade.ledger
 
 import org.junit.Test
 

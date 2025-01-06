@@ -1,4 +1,4 @@
-package dev.jinwoo.ledger.tag
+package dev.bluelemonade.ledger.tag
 
 import android.content.res.ColorStateList
 import android.view.LayoutInflater
@@ -9,7 +9,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import dev.bluelemonade.ledger.R
-import dev.bluelemonade.ledger.Theme
+import dev.bluelemonade.ledger.comm.Theme
 
 class TagAdapter(
     private val tags: ArrayList<String>,

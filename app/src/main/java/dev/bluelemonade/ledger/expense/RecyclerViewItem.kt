@@ -1,6 +1,6 @@
-package dev.jinwoo.ledger.expense
+package dev.bluelemonade.ledger.expense
 
-import dev.jinwoo.ledger.db.Expense
+import dev.bluelemonade.ledger.db.Expense
 
 sealed class RecyclerViewItem {
     data class Header(val date: String) : RecyclerViewItem()

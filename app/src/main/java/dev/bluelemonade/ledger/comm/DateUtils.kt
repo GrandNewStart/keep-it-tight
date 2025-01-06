@@ -1,4 +1,4 @@
-package dev.bluelemonade.ledger
+package dev.bluelemonade.ledger.comm
 
 import java.text.SimpleDateFormat
 import java.util.Date

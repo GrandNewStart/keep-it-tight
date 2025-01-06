@@ -1,7 +1,8 @@
-package dev.bluelemonade.ledger
+package dev.bluelemonade.ledger.comm
 
 import android.content.Context
 import android.content.SharedPreferences
+import dev.bluelemonade.ledger.R
 
 class Storage(context: Context) {
 

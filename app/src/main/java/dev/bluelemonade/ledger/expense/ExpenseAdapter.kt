@@ -1,4 +1,4 @@
-package dev.jinwoo.ledger.expense
+package dev.bluelemonade.ledger.expense
 
 import android.content.res.ColorStateList
 import android.view.LayoutInflater
@@ -8,10 +8,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
-import dev.bluelemonade.ledger.DateUtils
+import dev.bluelemonade.ledger.comm.DateUtils
 import dev.bluelemonade.ledger.R
-import dev.bluelemonade.ledger.Theme
-import dev.jinwoo.ledger.db.Expense
+import dev.bluelemonade.ledger.comm.Theme
+import dev.bluelemonade.ledger.db.Expense
 
 class ExpenseAdapter(
     expenses: List<Expense>,

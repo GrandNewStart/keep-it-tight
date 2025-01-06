@@ -1,4 +1,4 @@
-package dev.jinwoo.ledger.db
+package dev.bluelemonade.ledger.db
 
 import androidx.room.*
 
