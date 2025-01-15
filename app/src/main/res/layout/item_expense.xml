@@ -8,8 +8,8 @@
     app:cardBackgroundColor="#00000000"
     app:cardCornerRadius="0dp"
     app:cardElevation="0dp"
-    app:strokeWidth="0dp"
-    app:rippleColor="@color/lightSecondaryBackground">
+    app:rippleColor="@color/lightSecondaryBackground"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,6 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="1"
+            android:fontFamily="@font/pretendard_medium"
             android:textColor="@color/lightPrimaryText"
             android:textSize="16sp"
             tools:text="123456789012345678901234567890" />
@@ -32,6 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="1"
+            android:fontFamily="@font/pretendard_medium"
             android:textColor="@color/lightPrimaryText"
             android:textSize="16sp"
             tools:text="12345123456789067890" />
@@ -42,6 +44,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="1"
+            android:fontFamily="@font/pretendard_medium"
             android:textColor="@color/lightPrimaryText"
             android:textSize="16sp"
             tools:text="123412345678901234567890567890" />
