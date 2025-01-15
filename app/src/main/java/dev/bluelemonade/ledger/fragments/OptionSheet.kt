@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.TextView
@@ -29,16 +30,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import kotlin.math.absoluteValue
 
 class OptionSheet(
     private val item: Expense,
     private val theme: MutableLiveData<Theme>,
-    private val expenses: MutableLiveData<List<Expense>>,
     private val tags: MutableLiveData<List<String>>,
-    private val repository: ExpenseRepository
+    private val repository: ExpenseRepository,
+    private val onDataChange: () -> Unit
 ) : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentOptionBinding
+    private val minusLiveData = MutableLiveData(true)
 
     override fun getTheme(): Int {
         return R.style.Theme_BottomSheetDialog_Fullscreen
@@ -49,15 +52,33 @@ class OptionSheet(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentOptionBinding.inflate(inflater, container, false)
         binding.apply {
             dateTimeText.text = DateUtils.formatTimestampToDateTime(item.date.toLong())
+            signButton.setOnClickListener {
+                minusLiveData.postValue(!minusLiveData.value!!)
+            }
+            costEditText.setText(item.cost.absoluteValue.toString())
+            costEditText.setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                    nameEditText.requestFocus()
+                    true
+                }
+                false
+            }
             nameEditText.setText(item.name)
-            costEditText.setText(item.cost.toString())
+            nameEditText.setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    nameEditText.clearFocus()
+                    true
+                }
+                false
+            }
             setButtons()
             setSpinner(item.tag)
             observe()
+            minusLiveData.postValue(item.cost > 0)
         }
         return binding.root
     }
@@ -133,6 +154,20 @@ class OptionSheet(
                 deleteButton.rippleColor = ColorStateList.valueOf(secondaryTXT)
             }
         }
+        minusLiveData.observe(viewLifecycleOwner) { minus ->
+            binding.signButton.setBackgroundColor(
+                resources.getColor(
+                    if (minus) R.color.red else R.color.green,
+                    null
+                )
+            )
+            binding.signButton.setRippleColorResource(if (minus) R.color.red else R.color.green)
+            binding.signButton.text = getString(if (minus) R.string.minus else R.string.plus)
+            binding.costEditText.hint =
+                getString(if (minus) R.string.cost_input_hint_minus else R.string.cost_input_hint_plus)
+            binding.nameEditText.hint =
+                getString(if (minus) R.string.expense_name_minus else R.string.expense_name_plus)
+        }
     }
 
     private fun selectDateTime() {
@@ -172,7 +207,7 @@ class OptionSheet(
         val dateTimeStr = binding.dateTimeText.text.toString()
         val date = DateUtils.formatDateTimeToTimestamp(dateTimeStr)
         val name = binding.nameEditText.text.toString()
-        val cost = binding.costEditText.text.toString()
+        var cost = binding.costEditText.text.toString()
         val tag = binding.tagSpinner.selectedItem.toString()
 
         if (name.isEmpty()) {
@@ -183,6 +218,9 @@ class OptionSheet(
             Toast.makeText(requireContext(), R.string.enter_cost, Toast.LENGTH_SHORT).show()
             return
         }
+        if (!minusLiveData.value!!) {
+            cost = "-$cost"
+        }
         val newItem = Expense(
             item.id,
             date.time.toString(),
@@ -192,9 +230,7 @@ class OptionSheet(
         )
         CoroutineScope(Dispatchers.Default).launch {
             repository.update(newItem)
-            val newList = expenses.value!!.toMutableList()
-            newList[newList.indexOf(item)] = newItem
-            expenses.postValue(newList)
+            onDataChange()
             dismiss()
         }
     }
@@ -206,9 +242,7 @@ class OptionSheet(
                 dialog.dismiss()
                 CoroutineScope(Dispatchers.Default).launch {
                     repository.delete(item)
-                    val newList = expenses.value!!.toMutableList()
-                    newList.remove(item)
-                    expenses.postValue(newList)
+                    onDataChange()
                     dismiss()
                 }
             }

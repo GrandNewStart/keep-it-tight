@@ -11,5 +11,6 @@
     <color name="lightSecondaryText">#6D6D6D</color>
     <color name="darkSecondaryText">#ADADAD</color>
     <color name="red">#D35151</color>
+    <color name="green">#65C86D</color>
     <color name="transparent">#00000000</color>
 </resources>

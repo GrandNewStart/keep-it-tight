@@ -1,15 +1,12 @@
 package dev.bluelemonade.ledger.fragments
 
 import android.app.AlertDialog
-import android.app.Dialog
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.MutableLiveData
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dev.bluelemonade.ledger.R
 import dev.bluelemonade.ledger.comm.Storage

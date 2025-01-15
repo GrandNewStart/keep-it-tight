@@ -74,10 +74,8 @@ class ExpenseAdapter(
                 if (mode == Theme.Dark) R.color.darkSecondaryBackground else R.color.lightSecondaryBackground,
                 null
             )
-            val primaryBG = itemView.resources.getColor(
-                if (mode == Theme.Dark) R.color.darkPrimaryBackground else R.color.lightPrimaryBackground,
-                null
-            )
+            val red = itemView.resources.getColor(R.color.red, null)
+            val green = itemView.resources.getColor(R.color.green, null)
             itemView.apply {
                 (this as? MaterialCardView)?.let { root ->
                     root.isClickable = true
@@ -89,9 +87,16 @@ class ExpenseAdapter(
                     setText(
                         findViewById(R.id.nameText), item.expense.name, primaryTXT
                     )
-                    setText(
-                        findViewById(R.id.costText), "${item.expense.cost}", primaryTXT
-                    )
+                    if (item.expense.cost < 0) {
+                        setText(
+                            findViewById(R.id.costText), "${-item.expense.cost}", green
+                        )
+                    } else {
+                        setText(
+                            findViewById(R.id.costText), "${item.expense.cost}", red
+                        )
+                    }
+
                     setText(
                         findViewById(R.id.optionText), item.expense.tag, primaryTXT
                     )

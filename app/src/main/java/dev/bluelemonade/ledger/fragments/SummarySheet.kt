@@ -150,7 +150,14 @@ class SummarySheet(
             .filter { DateUtils.formatTimestampToDateOnly(it.date.toLong()) == date }
             .filter { tag == getString(R.string.all_tag) || it.tag == tag }
             .forEach { total += it.cost }
-        binding.dailyTotalText.text = "₩ $total"
+
+        if (total < 0) {
+            binding.dailyTotalText.setTextColor(resources.getColor(R.color.green, null))
+            binding.dailyTotalText.text = "+ ₩${-total}"
+        } else {
+            binding.dailyTotalText.setTextColor(resources.getColor(R.color.red, null))
+            binding.dailyTotalText.text = "- ₩$total"
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -180,9 +187,27 @@ class SummarySheet(
                 if (expenseDay == currentDay) dayTotal += it.cost
             }
 
-        binding.yearlyTotalText.text = "₩ $yearTotal"
-        binding.monthlyTotalText.text = "₩ $monthTotal"
-        binding.dailyTotalText.text = "₩ $dayTotal"
+        if (yearTotal < 0) {
+            binding.yearlyTotalText.setTextColor(resources.getColor(R.color.green, null))
+            binding.yearlyTotalText.text = "+ ₩${-yearTotal}"
+        } else {
+            binding.yearlyTotalText.setTextColor(resources.getColor(R.color.red, null))
+            binding.yearlyTotalText.text = "- ₩$yearTotal"
+        }
+        if (monthTotal < 0) {
+            binding.monthlyTotalText.setTextColor(resources.getColor(R.color.green, null))
+            binding.monthlyTotalText.text = "+ ₩${-monthTotal}"
+        } else {
+            binding.monthlyTotalText.setTextColor(resources.getColor(R.color.red, null))
+            binding.monthlyTotalText.text = "- ₩$monthTotal"
+        }
+        if (dayTotal < 0) {
+            binding.dailyTotalText.setTextColor(resources.getColor(R.color.green, null))
+            binding.dailyTotalText.text = "+ ₩${-dayTotal}"
+        } else {
+            binding.dailyTotalText.setTextColor(resources.getColor(R.color.red, null))
+            binding.dailyTotalText.text = "- ₩$dayTotal"
+        }
     }
 
 }

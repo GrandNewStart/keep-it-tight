@@ -2,8 +2,10 @@
     <string name="app_name">정신차려</string>
     <string name="dark_mode">다크 모드</string>
     <string name="light_mode">라이트 모드</string>
-    <string name="cost_input_hint">얼마를 썼느냐</string>
-    <string name="expense_name">왜 썼느냐</string>
+    <string name="cost_input_hint_minus">얼마를 썼느냐</string>
+    <string name="cost_input_hint_plus">얼마를 벌었느냐</string>
+    <string name="expense_name_minus">왜 썼느냐</string>
+    <string name="expense_name_plus">왜 벌었느냐</string>
     <string name="enter">입력</string>
     <string name="summary">요약</string>
     <string name="this_year">올해</string>
@@ -31,4 +33,6 @@
     <string name="ask_reset">모든 데이터를 삭제하시겠습니까?</string>
     <string name="ask_delete_item">항목을 삭제하시겠습니까?</string>
     <string name="invalid_input">잘못된 입력입니다</string>
+    <string name="plus">+</string>
+    <string name="minus">-</string>
 </resources>
