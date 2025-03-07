@@ -11,13 +11,25 @@ android {
         applicationId = "dev.bluelemonade.ledger"
         minSdk = 31
         targetSdk = 34
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        create("release") {
+            storeFile = file("../key.keystore")
+            storePassword = "ledger123"
+            keyAlias = "key"
+            keyPassword = "ledger123"
+        }
+    }
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("release")
+        }
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

@@ -86,28 +86,20 @@ class SettingsSheet(
 
     private fun observeLiveData() {
         theme.observe(viewLifecycleOwner) { theme ->
-            val primaryTXT = resources.getColor(
-                if (theme == Theme.Dark) R.color.darkPrimaryText else R.color.lightPrimaryText,
-                null
-            )
-            val secondaryTXT = resources.getColor(
-                if (theme == Theme.Dark) R.color.darkSecondaryBackground else R.color.lightSecondaryBackground,
-                null
-            )
-            val primaryBG = resources.getColor(
-                if (theme == Theme.Dark) R.color.darkPrimaryBackground else R.color.lightPrimaryBackground,
-                null
-            )
+            val primaryTXT = theme.primaryTXT(requireContext())
+            val secondaryTXT = theme.secondaryTXT(requireContext())
+            val primaryBG = theme.primaryBG(requireContext())
+            val primary = theme.primary(requireContext())
+            val secondary = theme.secondary(requireContext())
             binding.apply {
                 root.setBackgroundColor(primaryBG)
                 titleText.setTextColor(primaryTXT)
-                themeSwitchText.setTextColor(primaryTXT)
-                resetButton.setBackgroundColor(primaryTXT)
-                resetButton.rippleColor = ColorStateList.valueOf(secondaryTXT)
-                resetButton.setTextColor(primaryBG)
-                manageTagButton.setBackgroundColor(primaryTXT)
-                manageTagButton.rippleColor = ColorStateList.valueOf(secondaryTXT)
-                manageTagButton.setTextColor(primaryBG)
+                themeSwitchText.setTextColor(secondaryTXT)
+                themeSwitchText.text = resources.getText(if (theme == Theme.Dark) R.string.dark_mode else R.string.light_mode)
+                resetButton.setBackgroundColor(primary)
+                resetButton.rippleColor = ColorStateList.valueOf(secondary)
+                manageTagButton.setBackgroundColor(primary)
+                manageTagButton.rippleColor = ColorStateList.valueOf(secondary)
             }
         }
     }

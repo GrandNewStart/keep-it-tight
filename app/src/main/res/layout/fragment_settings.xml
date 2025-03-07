@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/lightPrimaryBackground"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -8,12 +9,12 @@
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="8dp"
         android:fontFamily="@font/pretendard_extrabold"
         android:text="@string/settings"
         android:textColor="@color/lightPrimaryText"
         android:textFontWeight="900"
-        android:textSize="24sp"
+        android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -22,7 +23,7 @@
         android:id="@+id/themeSwitchContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:orientation="horizontal"
         app:layout_constraintStart_toStartOf="parent"
@@ -35,13 +36,15 @@
             android:layout_marginEnd="8dp"
             android:fontFamily="@font/pretendard_bold"
             android:text="@string/dark_mode"
-            android:textColor="@color/darkPrimaryText"
+            android:textColor="@color/lightSecondaryText"
             android:textSize="16sp" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/themeSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:thumbIconTint="@color/lightSecondaryText"
+            app:trackTint="@color/lightSecondaryBackground"
             android:checked="true" />
 
     </LinearLayout>
@@ -50,17 +53,16 @@
         android:id="@+id/manageTagButton"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="8dp"
-        android:backgroundTint="@color/lightPrimaryText"
+        android:backgroundTint="@color/lightPrimary"
         android:fontFamily="@font/pretendard_bold"
         android:insetTop="0dp"
         android:insetBottom="0dp"
         android:text="@string/manage_tag"
-        android:textColor="@color/lightPrimaryBackground"
+        android:textColor="@color/white"
         android:textFontWeight="900"
         android:textSize="18sp"
-        app:cornerRadius="5dp"
+        app:cornerRadius="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/themeSwitchContainer" />
@@ -69,18 +71,16 @@
         android:id="@+id/resetButton"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="32dp"
-        android:backgroundTint="@color/lightPrimaryText"
+        android:layout_marginTop="4dp"
+        android:backgroundTint="@color/lightPrimary"
         android:fontFamily="@font/pretendard_bold"
         android:insetTop="0dp"
         android:insetBottom="0dp"
         android:text="@string/reset"
-        android:textColor="@color/lightPrimaryBackground"
+        android:textColor="@color/white"
         android:textFontWeight="900"
         android:textSize="18sp"
-        app:cornerRadius="5dp"
+        app:cornerRadius="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

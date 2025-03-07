@@ -132,13 +132,14 @@ class OptionSheet(
             val primaryBG = theme.primaryBG(requireContext())
             val primaryTXT = theme.primaryTXT(requireContext())
             val secondaryTXT = theme.secondaryTXT(requireContext())
+            val primary = theme.primary(requireContext())
+            val secondary = theme.secondary(requireContext())
 
             binding.apply {
                 root.setBackgroundColor(primaryBG)
                 dateTimeText.setTextColor(primaryTXT)
-                dateTimeEditButton.setCardBackgroundColor(primaryTXT)
-                dateTimeEditButton.rippleColor = ColorStateList.valueOf(secondaryTXT)
-                dateTimeEditButtonImage.imageTintList = ColorStateList.valueOf(primaryBG)
+                dateTimeEditButton.setCardBackgroundColor(primary)
+                dateTimeEditButton.rippleColor = ColorStateList.valueOf(secondary)
                 nameEditText.backgroundTintList = ColorStateList.valueOf(primaryTXT)
                 nameEditText.setTextColor(primaryTXT)
                 nameEditText.setHintTextColor(secondaryTXT)
@@ -146,12 +147,10 @@ class OptionSheet(
                 costEditText.setTextColor(primaryTXT)
                 costEditText.setHintTextColor(secondaryTXT)
                 tagSpinner.backgroundTintList = ColorStateList.valueOf(primaryTXT)
-                confirmButton.setBackgroundColor(primaryTXT)
-                confirmButton.setTextColor(primaryBG)
-                confirmButton.rippleColor = ColorStateList.valueOf(secondaryTXT)
-                deleteButton.setBackgroundColor(primaryTXT)
-                deleteButton.setTextColor(primaryBG)
-                deleteButton.rippleColor = ColorStateList.valueOf(secondaryTXT)
+                confirmButton.setBackgroundColor(primary)
+                confirmButton.rippleColor = ColorStateList.valueOf(secondary)
+                deleteButton.setBackgroundColor(primary)
+                deleteButton.rippleColor = ColorStateList.valueOf(secondary)
             }
         }
         minusLiveData.observe(viewLifecycleOwner) { minus ->

@@ -3,37 +3,43 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@color/lightPrimaryBackground">
 
     <TextView
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="8dp"
         android:fontFamily="@font/pretendard_extrabold"
         android:text="@string/summary"
         android:textColor="@color/lightPrimaryText"
         android:textFontWeight="900"
-        android:textSize="24sp"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tagSpinner"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/tagSpinner" />
 
     <Spinner
         android:id="@+id/tagSpinner"
         android:layout_width="0dp"
         android:layout_height="50dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/spinner_background"
+        android:backgroundTint="@color/lightPrimaryText"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/titleText"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_percent="0.3" />
 
     <LinearLayout
         android:id="@+id/yearly"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
         android:orientation="horizontal"
+        android:paddingStart="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tagSpinner">
@@ -42,25 +48,25 @@
             android:id="@+id/yearlyText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="8dp"
             android:layout_weight="1"
             android:fontFamily="@font/pretendard_bold"
             android:text="@string/this_year"
             android:textAlignment="textStart"
-            android:textColor="@color/lightPrimaryText"
-            android:textFontWeight="900"
+            android:textColor="@color/lightSecondaryText"
+            android:textFontWeight="700"
             android:textSize="18sp" />
 
         <TextView
             android:id="@+id/yearlyTotalText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="8dp"
             android:layout_weight="1"
             android:fontFamily="@font/pretendard_medium"
             android:textAlignment="textEnd"
             android:textColor="@color/lightPrimaryText"
-            android:textFontWeight="900"
+            android:textFontWeight="700"
             android:textSize="18sp"
             tools:text="\₩ 10,000,000" />
 
@@ -70,7 +76,9 @@
         android:id="@+id/monthly"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:orientation="horizontal"
+        android:paddingStart="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/yearly">
@@ -79,25 +87,25 @@
             android:id="@+id/monthlyText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="8dp"
             android:layout_weight="1"
             android:fontFamily="@font/pretendard_bold"
             android:text="@string/this_month"
             android:textAlignment="textStart"
-            android:textColor="@color/lightPrimaryText"
-            android:textFontWeight="900"
+            android:textColor="@color/lightSecondaryText"
+            android:textFontWeight="700"
             android:textSize="18sp" />
 
         <TextView
             android:id="@+id/monthlyTotalText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="8dp"
             android:layout_weight="1"
             android:fontFamily="@font/pretendard_medium"
             android:textAlignment="textEnd"
             android:textColor="@color/lightPrimaryText"
-            android:textFontWeight="900"
+            android:textFontWeight="700"
             android:textSize="18sp"
             tools:text="\₩ 10,000,000" />
     </LinearLayout>
@@ -106,7 +114,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
+        android:gravity="center"
         android:orientation="horizontal"
+        android:paddingStart="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -116,25 +126,25 @@
             android:id="@+id/dailyText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="8dp"
             android:layout_weight="1"
             android:fontFamily="@font/pretendard_bold"
             android:text="@string/today"
             android:textAlignment="textStart"
             android:textColor="@color/lightPrimaryText"
-            android:textFontWeight="900"
+            android:textFontWeight="700"
             android:textSize="18sp" />
 
         <TextView
             android:id="@+id/dailyTotalText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="8dp"
             android:layout_weight="1"
             android:fontFamily="@font/pretendard_medium"
             android:textAlignment="textEnd"
-            android:textColor="@color/lightPrimaryText"
-            android:textFontWeight="900"
+            android:textColor="@color/lightSecondaryText"
+            android:textFontWeight="700"
             android:textSize="18sp"
             tools:text="\₩ 10,000,000" />
     </LinearLayout>

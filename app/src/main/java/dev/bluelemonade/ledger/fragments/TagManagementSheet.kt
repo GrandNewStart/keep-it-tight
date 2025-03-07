@@ -52,22 +52,21 @@ class TagManagementSheet(
     private fun observeLiveData() {
         theme.observe(viewLifecycleOwner) { theme ->
             val transparent = resources.getColor(R.color.transparent, null)
+            val primary = theme.primary(requireContext())
+            val secondary = theme.secondary(requireContext())
             val primaryBG = theme.primaryBG(requireContext())
             val primaryTXT = theme.primaryTXT(requireContext())
-            val secondaryTXT = theme.secondaryTXT(requireContext())
 
             binding.apply {
                 root.setBackgroundColor(primaryBG)
                 recyclerView.setBackgroundColor(transparent)
                 titleText.setTextColor(primaryTXT)
 
-                addButton.setCardBackgroundColor(primaryTXT)
-                addButton.rippleColor = ColorStateList.valueOf(secondaryTXT)
-                addButtonImage.imageTintList = ColorStateList.valueOf(primaryBG)
+                addButton.setCardBackgroundColor(primary)
+                addButton.rippleColor = ColorStateList.valueOf(secondary)
 
-                saveButton.setBackgroundColor(primaryTXT)
-                saveButton.rippleColor = ColorStateList.valueOf(secondaryTXT)
-                saveButton.setTextColor(primaryBG)
+                saveButton.setBackgroundColor(primary)
+                saveButton.rippleColor = ColorStateList.valueOf(secondary)
             }
         }
     }

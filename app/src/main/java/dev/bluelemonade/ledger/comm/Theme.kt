@@ -18,4 +18,10 @@ enum class Theme {
     fun secondaryTXT(context: Context): Int {
         return context.getColor(if (this == Dark) R.color.darkSecondaryText else R.color.lightSecondaryText)
     }
+    fun primary(context: Context): Int {
+        return context.getColor(if (this == Dark) R.color.darkPrimary else R.color.lightPrimary)
+    }
+    fun secondary(context: Context): Int {
+        return context.getColor(if (this == Dark) R.color.darkSecondary else R.color.lightSecondary)
+    }
 }

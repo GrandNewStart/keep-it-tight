@@ -21,6 +21,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.addTextChangedListener
+import androidx.core.widget.doBeforeTextChanged
 import androidx.lifecycle.MutableLiveData
 import dev.bluelemonade.ledger.comm.DateUtils
 import dev.bluelemonade.ledger.comm.Storage
@@ -69,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         binding.apply {
             setContentView(root)
+
             ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
                 v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -96,7 +99,6 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
-
             }
 
             // Settings button setup
@@ -115,6 +117,14 @@ class MainActivity : AppCompatActivity() {
             // Toggle +/- sign
             signButton.setOnClickListener {
                 minusLiveData.postValue(!minusLiveData.value!!)
+            }
+
+            nameEditText.addTextChangedListener {
+                it.toString()
+            }
+
+            nameEditText.doBeforeTextChanged { text, start, count, after ->
+
             }
 
             nameEditText.setOnEditorActionListener { _, actionId, _ ->
@@ -263,14 +273,17 @@ class MainActivity : AppCompatActivity() {
     private fun observeLiveData() {
         themeLiveData.observe(this, { theme ->
             storage.setTheme(theme)
+            val white = resources.getColor(R.color.white, null)
             val primaryBG = theme.primaryBG(applicationContext)
             val secondaryBG = theme.secondaryBG(applicationContext)
             val primaryTXT = theme.primaryTXT(applicationContext)
             val secondaryTXT = theme.secondaryTXT(applicationContext)
+            val primary = theme.primary(applicationContext)
+            val secondary = theme.secondary(applicationContext)
 
-            window.statusBarColor = secondaryBG
+            window.statusBarColor = primaryBG
             val colorAnimator = ValueAnimator.ofArgb(
-                getColor(if (theme == Theme.Dark) R.color.lightPrimaryBackground else R.color.darkPrimaryBackground),
+                getColor(if (theme == Theme.Dark) R.color.darkSecondaryBackground else R.color.lightSecondaryBackground),
                 getColor(if (theme == Theme.Dark) R.color.darkPrimaryBackground else R.color.lightPrimaryBackground)
             )
             colorAnimator.duration = 250
@@ -294,13 +307,11 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                settingsButton.backgroundTintList = ColorStateList.valueOf(primaryTXT)
+                settingsButton.backgroundTintList = ColorStateList.valueOf(primary)
                 settingsButton.rippleColor = ColorStateList.valueOf(secondaryTXT)
-                settingsImage.imageTintList = ColorStateList.valueOf(primaryBG)
+                settingsImage.imageTintList = ColorStateList.valueOf(white)
 
-                headerNameText.setTextColor(primaryTXT)
-                headerCostText.setTextColor(primaryTXT)
-                headerTagText.setTextColor(primaryTXT)
+                headerView.setBackgroundColor(primary)
 
                 costEditText.backgroundTintList = ColorStateList.valueOf(primaryTXT)
                 costEditText.setHintTextColor(secondaryTXT)
@@ -322,12 +333,11 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                enterButton.setTextColor(primaryBG)
-                enterButton.setBackgroundColor(primaryTXT)
+                val white = resources.getColor(R.color.white, null)
+                enterButton.setBackgroundColor(primary)
                 enterButton.rippleColor = ColorStateList.valueOf(secondaryTXT)
 
-                summaryButton.setTextColor(primaryBG)
-                summaryButton.setBackgroundColor(primaryTXT)
+                summaryButton.setBackgroundColor(primary)
                 summaryButton.rippleColor = ColorStateList.valueOf(secondaryTXT)
 
                 recyclerView.setThumbColor(secondaryTXT)

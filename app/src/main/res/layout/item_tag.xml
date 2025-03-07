@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/transparent"
     android:clickable="true">
 
     <EditText
@@ -11,9 +12,10 @@
         android:layout_width="0dp"
         android:layout_height="50dp"
         android:layout_marginVertical="4dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:background="@drawable/spinner_background"
+        android:backgroundTint="@color/lightPrimaryText"
         android:fontFamily="@font/pretendard_medium"
         android:imeOptions="actionDone"
         android:inputType="text"
@@ -33,7 +35,7 @@
         android:id="@+id/deleteButton"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="8dp"
         android:elevation="0dp"
         android:insetTop="0dp"
         android:insetBottom="0dp"

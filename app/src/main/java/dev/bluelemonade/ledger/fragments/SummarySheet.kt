@@ -118,14 +118,15 @@ class SummarySheet(
         theme.observe(viewLifecycleOwner) { theme ->
             val primaryBG = theme.primaryBG(requireContext())
             val primaryTXT = theme.primaryTXT(requireContext())
+            val secondaryTXT = theme.secondaryTXT(requireContext())
             binding.apply {
                 root.setBackgroundColor(primaryBG)
                 titleText.setTextColor(primaryTXT)
-                yearlyText.setTextColor(primaryTXT)
+                yearlyText.setTextColor(secondaryTXT)
                 yearlyTotalText.setTextColor(primaryTXT)
-                monthlyText.setTextColor(primaryTXT)
+                monthlyText.setTextColor(secondaryTXT)
                 monthlyTotalText.setTextColor(primaryTXT)
-                dailyText.setTextColor(primaryTXT)
+                dailyText.setTextColor(secondaryTXT)
                 dailyTotalText.setTextColor(primaryTXT)
             }
         }

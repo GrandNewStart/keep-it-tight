@@ -40,19 +40,13 @@ class ExpenseAdapter(
             (itemView as? MaterialButton)?.let {
                 it.backgroundTintList = ColorStateList.valueOf(
                     it.resources.getColor(
-                        if (mode == Theme.Dark) R.color.darkSecondaryBackground else R.color.lightSecondaryBackground,
+                        if (mode == Theme.Dark) R.color.darkSecondary else R.color.lightSecondary,
                         null
                     )
                 )
                 it.rippleColor = ColorStateList.valueOf(
                     it.resources.getColor(
-                        if (mode == Theme.Dark) R.color.darkPrimaryBackground else R.color.lightPrimaryBackground,
-                        null
-                    )
-                )
-                it.setTextColor(
-                    itemView.resources.getColor(
-                        if (mode == Theme.Dark) R.color.darkPrimaryText else R.color.lightPrimaryText,
+                        if (mode == Theme.Dark) R.color.darkPrimary else R.color.lightPrimary,
                         null
                     )
                 )
