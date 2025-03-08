@@ -2,7 +2,6 @@ package dev.bluelemonade.ledger.fragments
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.app.Dialog
 import android.app.TimePickerDialog
 import android.content.res.ColorStateList
 import android.os.Bundle
@@ -10,13 +9,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.datepicker.MaterialDatePicker
 import dev.bluelemonade.ledger.comm.DateUtils
@@ -96,9 +91,9 @@ class OptionSheet(
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val binding = ItemSpinnerBinding.inflate(layoutInflater)
                     binding.textView.text = getItem(position)
-                    binding.textView.setTextColor(theme.value!!.primaryTXT(requireContext()))
+                    binding.textView.setTextColor(theme.value!!.primaryText(requireContext()))
                     binding.imageView.imageTintList =
-                        ColorStateList.valueOf(theme.value!!.primaryTXT(requireContext()))
+                        ColorStateList.valueOf(theme.value!!.primaryText(requireContext()))
                     return binding.root
                 }
             }
@@ -129,9 +124,9 @@ class OptionSheet(
 
     private fun observe() {
         theme.observe(viewLifecycleOwner) { theme ->
-            val primaryBG = theme.primaryBG(requireContext())
-            val primaryTXT = theme.primaryTXT(requireContext())
-            val secondaryTXT = theme.secondaryTXT(requireContext())
+            val primaryBG = theme.primaryBackground(requireContext())
+            val primaryTXT = theme.primaryText(requireContext())
+            val secondaryTXT = theme.secondaryText(requireContext())
             val primary = theme.primary(requireContext())
             val secondary = theme.secondary(requireContext())
 

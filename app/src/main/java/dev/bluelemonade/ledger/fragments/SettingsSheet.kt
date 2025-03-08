@@ -86,9 +86,9 @@ class SettingsSheet(
 
     private fun observeLiveData() {
         theme.observe(viewLifecycleOwner) { theme ->
-            val primaryTXT = theme.primaryTXT(requireContext())
-            val secondaryTXT = theme.secondaryTXT(requireContext())
-            val primaryBG = theme.primaryBG(requireContext())
+            val primaryTXT = theme.primaryText(requireContext())
+            val secondaryTXT = theme.secondaryText(requireContext())
+            val primaryBG = theme.primaryBackground(requireContext())
             val primary = theme.primary(requireContext())
             val secondary = theme.secondary(requireContext())
             binding.apply {

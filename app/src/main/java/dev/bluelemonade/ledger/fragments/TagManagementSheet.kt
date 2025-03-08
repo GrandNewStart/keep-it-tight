@@ -54,8 +54,8 @@ class TagManagementSheet(
             val transparent = resources.getColor(R.color.transparent, null)
             val primary = theme.primary(requireContext())
             val secondary = theme.secondary(requireContext())
-            val primaryBG = theme.primaryBG(requireContext())
-            val primaryTXT = theme.primaryTXT(requireContext())
+            val primaryBG = theme.primaryBackground(requireContext())
+            val primaryTXT = theme.primaryText(requireContext())
 
             binding.apply {
                 root.setBackgroundColor(primaryBG)

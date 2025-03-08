@@ -53,7 +53,7 @@ class SummarySheet(
             }
 
             // Tag spinner setup
-            val primaryTXT = theme.value!!.primaryTXT(requireContext())
+            val primaryTXT = theme.value!!.primaryText(requireContext())
             tagSpinner.backgroundTintList = ColorStateList.valueOf(primaryTXT)
             tagSpinner.foregroundTintList = ColorStateList.valueOf(primaryTXT)
             tagSpinner.popupBackground.setTint(
@@ -116,9 +116,9 @@ class SummarySheet(
 
     private fun observeLiveData() {
         theme.observe(viewLifecycleOwner) { theme ->
-            val primaryBG = theme.primaryBG(requireContext())
-            val primaryTXT = theme.primaryTXT(requireContext())
-            val secondaryTXT = theme.secondaryTXT(requireContext())
+            val primaryBG = theme.primaryBackground(requireContext())
+            val primaryTXT = theme.primaryText(requireContext())
+            val secondaryTXT = theme.secondaryText(requireContext())
             binding.apply {
                 root.setBackgroundColor(primaryBG)
                 titleText.setTextColor(primaryTXT)
