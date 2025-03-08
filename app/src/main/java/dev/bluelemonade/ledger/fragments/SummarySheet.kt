@@ -11,8 +11,11 @@ import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.lifecycle.MutableLiveData
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import dev.bluelemonade.ledger.GlobalApplication
 import dev.bluelemonade.ledger.comm.DateUtils
 import dev.bluelemonade.ledger.R
+import dev.bluelemonade.ledger.comm.Colors
+import dev.bluelemonade.ledger.comm.Strings
 import dev.bluelemonade.ledger.comm.Theme
 import dev.bluelemonade.ledger.databinding.FragmentSummaryBinding
 import dev.bluelemonade.ledger.databinding.ItemSpinnerBinding
@@ -21,15 +24,12 @@ import java.util.Calendar
 import java.util.Date
 
 class SummarySheet(
-    private val expenses: MutableLiveData<List<Expense>>,
-    private val tags: MutableLiveData<List<String>>,
-    private val theme: MutableLiveData<Theme>,
     private val date: String? = null
 ) : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentSummaryBinding
-
     private val tagLiveData = MutableLiveData("All")
+    private val app = GlobalApplication.instance
 
     override fun getTheme(): Int {
         return R.style.Theme_BottomSheetDialog_Fullscreen
@@ -48,26 +48,25 @@ class SummarySheet(
             monthlyText.visibility = if (date == null) View.VISIBLE else View.GONE
             monthlyTotalText.visibility = if (date == null) View.VISIBLE else View.GONE
             date?.let {
-                dailyText.text = getString(R.string.this_day)
+                dailyText.text = Strings.this_day
                 titleText.text = date
             }
 
             // Tag spinner setup
-            val primaryTXT = theme.value!!.primaryText(requireContext())
-            tagSpinner.backgroundTintList = ColorStateList.valueOf(primaryTXT)
-            tagSpinner.foregroundTintList = ColorStateList.valueOf(primaryTXT)
+            tagSpinner.backgroundTintList = ColorStateList.valueOf(Colors.primaryText)
+            tagSpinner.foregroundTintList = ColorStateList.valueOf(Colors.primaryText)
             tagSpinner.popupBackground.setTint(
                 resources.getColor(
                     R.color.lightPrimaryBackground,
                     null
                 )
             )
-            (tagSpinner.getChildAt(0) as? TextView)?.setTextColor(primaryTXT)
+            (tagSpinner.getChildAt(0) as? TextView)?.setTextColor(Colors.primaryText)
 
             val dropdownItems = ArrayList<String>()
-            dropdownItems.add(getString(R.string.no_tag))
-            dropdownItems.addAll(tags.value!!.toMutableList())
-            dropdownItems.add(getString(R.string.all_tag))
+            dropdownItems.add(Strings.no_tag)
+            dropdownItems.addAll(app.tags.toMutableList())
+            dropdownItems.add(Strings.all_tag)
             val adapter = object : ArrayAdapter<String>(
                 requireContext(),
                 R.layout.item_spinner,
@@ -77,8 +76,8 @@ class SummarySheet(
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val binding = ItemSpinnerBinding.inflate(layoutInflater)
                     binding.textView.text = getItem(position)
-                    binding.textView.setTextColor(primaryTXT)
-                    binding.imageView.imageTintList = ColorStateList.valueOf(primaryTXT)
+                    binding.textView.setTextColor(Colors.primaryText)
+                    binding.imageView.imageTintList = ColorStateList.valueOf(Colors.primaryText)
                     return binding.root
                 }
             }
@@ -91,16 +90,11 @@ class SummarySheet(
                     position: Int,
                     id: Long
                 ) {
-                    val textColor =
-                        resources.getColor(
-                            if (theme.value == Theme.Dark) R.color.darkPrimaryText else R.color.lightPrimaryText,
-                            null
-                        )
-                    (view as? TextView)?.setTextColor(textColor)
+                    (view as? TextView)?.setTextColor(Colors.primaryText)
                     if (date == null)
-                        calculateSum(expenses.value!!, dropdownItems[position])
+                        calculateSum(app.items, dropdownItems[position])
                     else
-                        calculateSumForDate(expenses.value!!, dropdownItems[position], date)
+                        calculateSumForDate(app.items, dropdownItems[position], date)
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -115,22 +109,19 @@ class SummarySheet(
     }
 
     private fun observeLiveData() {
-        theme.observe(viewLifecycleOwner) { theme ->
-            val primaryBG = theme.primaryBackground(requireContext())
-            val primaryTXT = theme.primaryText(requireContext())
-            val secondaryTXT = theme.secondaryText(requireContext())
+        app.themeLiveData.observe(viewLifecycleOwner) {
             binding.apply {
-                root.setBackgroundColor(primaryBG)
-                titleText.setTextColor(primaryTXT)
-                yearlyText.setTextColor(secondaryTXT)
-                yearlyTotalText.setTextColor(primaryTXT)
-                monthlyText.setTextColor(secondaryTXT)
-                monthlyTotalText.setTextColor(primaryTXT)
-                dailyText.setTextColor(secondaryTXT)
-                dailyTotalText.setTextColor(primaryTXT)
+                root.setBackgroundColor(Colors.primaryBackground)
+                titleText.setTextColor(Colors.primaryText)
+                yearlyText.setTextColor(Colors.secondaryText)
+                yearlyTotalText.setTextColor(Colors.primaryText)
+                monthlyText.setTextColor(Colors.secondaryText)
+                monthlyTotalText.setTextColor(Colors.primaryText)
+                dailyText.setTextColor(Colors.secondaryText)
+                dailyTotalText.setTextColor(Colors.primaryText)
             }
         }
-        expenses.observe(viewLifecycleOwner) { expenses ->
+        app.itemsLiveData.observe(viewLifecycleOwner) { expenses ->
             if (date == null)
                 calculateSum(expenses, tagLiveData.value!!)
             else
@@ -138,9 +129,9 @@ class SummarySheet(
         }
         tagLiveData.observe(viewLifecycleOwner) { tag ->
             if (date == null)
-                calculateSum(expenses.value!!, tag)
+                calculateSum(app.items, tag)
             else
-                calculateSumForDate(expenses.value!!, tag, date)
+                calculateSumForDate(app.items, tag, date)
         }
     }
 
@@ -149,14 +140,14 @@ class SummarySheet(
         var total = 0
         expenses
             .filter { DateUtils.formatTimestampToDateOnly(it.date.toLong()) == date }
-            .filter { tag == getString(R.string.all_tag) || it.tag == tag }
+            .filter { tag == Strings.all_tag || it.tag == tag }
             .forEach { total += it.cost }
 
         if (total < 0) {
-            binding.dailyTotalText.setTextColor(resources.getColor(R.color.green, null))
+            binding.dailyTotalText.setTextColor(Colors.green)
             binding.dailyTotalText.text = "+ ₩${-total}"
         } else {
-            binding.dailyTotalText.setTextColor(resources.getColor(R.color.red, null))
+            binding.dailyTotalText.setTextColor(Colors.red)
             binding.dailyTotalText.text = "- ₩$total"
         }
     }
@@ -175,7 +166,7 @@ class SummarySheet(
         var dayTotal = 0
 
         expenses
-            .filter { tag == getString(R.string.all_tag) || it.tag == tag }
+            .filter { tag == Strings.all_tag || it.tag == tag }
             .forEach {
                 val expenseDate = Date(it.date.toLong())
                 calendar.time = expenseDate

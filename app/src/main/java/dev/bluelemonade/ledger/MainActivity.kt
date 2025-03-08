@@ -2,12 +2,9 @@ package dev.bluelemonade.ledger
 
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.Rect
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -21,50 +18,30 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
-import dev.bluelemonade.ledger.comm.DateUtils
+import dev.bluelemonade.ledger.comm.Colors
 import dev.bluelemonade.ledger.comm.ItemUtils
-import dev.bluelemonade.ledger.comm.Storage
-import dev.bluelemonade.ledger.comm.Theme
+import dev.bluelemonade.ledger.comm.Strings
 import dev.bluelemonade.ledger.databinding.ActivityMainBinding
 import dev.bluelemonade.ledger.databinding.ItemSpinnerBinding
 import dev.bluelemonade.ledger.db.Expense
-import dev.bluelemonade.ledger.db.ExpenseDatabase
-import dev.bluelemonade.ledger.db.ExpenseRepository
 import dev.bluelemonade.ledger.expense.ExpenseAdapter
+import dev.bluelemonade.ledger.extensions.handleKeyboardPopup
 import dev.bluelemonade.ledger.extensions.hideKeyboard
 import dev.bluelemonade.ledger.extensions.toast
 import dev.bluelemonade.ledger.fragments.OptionSheet
 import dev.bluelemonade.ledger.fragments.SettingsSheet
 import dev.bluelemonade.ledger.fragments.SummarySheet
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlin.math.exp
-
 
 class MainActivity : AppCompatActivity() {
 
+    private val app = GlobalApplication.instance
     private lateinit var binding: ActivityMainBinding
-    private lateinit var database: ExpenseDatabase
-    private lateinit var repository: ExpenseRepository
-    private lateinit var storage: Storage
-
-    private val themeLiveData = MutableLiveData(Theme.Dark)
-
-    private val tagsLiveData = MutableLiveData<List<String>>(listOf())
-    private val minusLiveData = MutableLiveData(true)
-
-    private val expensesLiveData = MutableLiveData<List<Expense>>(listOf())
-    private var selectedMonthLiveData = MutableLiveData("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initView()
         observeLiveData()
         handleKeyboardPopup()
-        initData()
     }
 
     private fun initView() {
@@ -81,26 +58,39 @@ class MainActivity : AppCompatActivity() {
 
             // Settings button setup
             settingsButton.setOnClickListener {
-                val settingsSheet =
-                    SettingsSheet(themeLiveData, expensesLiveData, tagsLiveData, repository)
-                settingsSheet.show(supportFragmentManager, "SettingsSheet")
+                SettingsSheet().show(supportFragmentManager, "SettingsSheet")
             }
 
             // Summary button setup
             summaryButton.setOnClickListener {
-                val summarySheet = SummarySheet(expensesLiveData, tagsLiveData, themeLiveData)
-                summarySheet.show(supportFragmentManager, "SummarySheet")
+                SummarySheet().show(supportFragmentManager, "SummarySheet")
             }
 
             // Toggle +/- sign
             signButton.setOnClickListener {
-                minusLiveData.postValue(!minusLiveData.value!!)
+                val text = signButton.text.toString()
+                if (text == Strings.plus) {
+                    signButton.text = Strings.minus
+                    signButton.setBackgroundColor(Colors.red)
+                    signButton.setRippleColorResource(R.color.red)
+                    costEditText.hint = Strings.cost_input_hint_minus
+                    nameEditText.hint = Strings.expense_name_minus
+                    return@setOnClickListener
+                }
+                if (text == Strings.minus) {
+                    signButton.text = Strings.plus
+                    signButton.setBackgroundColor(Colors.green)
+                    signButton.setRippleColorResource(R.color.green)
+                    costEditText.hint = Strings.cost_input_hint_plus
+                    nameEditText.hint = Strings.expense_name_plus
+                    return@setOnClickListener
+                }
             }
 
             nameEditText.setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_NEXT) {
                     costEditText.requestFocus()
-                    true
+                    return@setOnEditorActionListener true
                 }
                 false
             }
@@ -108,7 +98,7 @@ class MainActivity : AppCompatActivity() {
             costEditText.setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     costEditText.clearFocus()
-                    true
+                    return@setOnEditorActionListener true
                 }
                 false
             }
@@ -118,18 +108,21 @@ class MainActivity : AppCompatActivity() {
                 override fun onItemSelected(
                     parent: AdapterView<*>?, view: View?, position: Int, id: Long
                 ) {
-                    val textColor = themeLiveData.value!!.primaryText(applicationContext)
+                    val textColor = Colors.primaryText
                     (view as? TextView)?.setTextColor(textColor)
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
 
+            // Month spinner setup
             monthSpinner.onItemSelectedListener = object : OnItemSelectedListener {
                 override fun onItemSelected(
                     parent: AdapterView<*>?, view: View?, position: Int, id: Long
                 ) {
-                    selectedMonthLiveData.postValue(months[position])
+                    val dateStr = monthSpinner.selectedItem as String
+                    val filteredItems = ItemUtils.filterByMonth(app.items.toMutableList(), dateStr)
+                    setRecyclerView(filteredItems)
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -137,17 +130,16 @@ class MainActivity : AppCompatActivity() {
 
             // Enter button setup
             enterButton.setOnClickListener {
-                val minus = minusLiveData.value!!
                 val costStr = costEditText.text.toString()
                 if (costStr.isEmpty()) return@setOnClickListener
                 var cost: Int
                 try {
                     cost = costStr.toInt()
                 } catch (e: NumberFormatException) {
-                    toast(getString(R.string.invalid_input))
+                    toast(Strings.invalid_input)
                     return@setOnClickListener
                 }
-                if (!minus) {
+                if (signButton.text.toString() == Strings.plus) {
                     cost = -cost
                 }
 
@@ -159,21 +151,12 @@ class MainActivity : AppCompatActivity() {
 
                 hideKeyboard(binding.root)
 
-                CoroutineScope(Dispatchers.Default).launch {
-                    repository.insert(
-                        Expense(
-                            date = DateUtils.createTimestamp().toString(),
-                            cost = cost,
-                            name = name,
-                            tag = tag
-                        )
-                    )
-                    loadData()
-                    runOnUiThread {
-                        costEditText.setText("")
-                        nameEditText.setText("")
-                        tagSpinner.setSelection(0)
-                    }
+                app.addItem(name, cost, tag)
+
+                runOnUiThread {
+                    costEditText.setText("")
+                    nameEditText.setText("")
+                    tagSpinner.setSelection(0)
                 }
             }
         }
@@ -182,24 +165,19 @@ class MainActivity : AppCompatActivity() {
     private fun setRecyclerView(items: List<Expense>) {
         runOnUiThread {
             binding.recyclerView.apply {
-                setBackgroundColor(getColor(R.color.transparent))
+                setBackgroundColor(Colors.transparent)
                 adapter = ExpenseAdapter(items,
-                    themeLiveData.value!!,
+                    app.theme,
                     object : ExpenseAdapter.ExpenseAdapterListener {
                         override fun onClick(item: Expense) {
-                            OptionSheet(
-                                item,
-                                themeLiveData,
-                                tagsLiveData,
-                                repository
-                            ) { loadData() }.show(
+                            OptionSheet(item).show(
                                 supportFragmentManager,
                                 "OptionSheet"
                             )
                         }
 
                         override fun onClick(date: String) {
-                            SummarySheet(expensesLiveData, tagsLiveData, themeLiveData, date).show(
+                            SummarySheet(date).show(
                                 supportFragmentManager, "SummarySheet"
                             )
                         }
@@ -216,10 +194,9 @@ class MainActivity : AppCompatActivity() {
                 @SuppressLint("ViewHolder")
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val binding = ItemSpinnerBinding.inflate(layoutInflater)
-                    val primaryText = themeLiveData.value!!.primaryText(applicationContext)
                     binding.textView.text = getItem(position)
-                    binding.textView.setTextColor(primaryText)
-                    binding.imageView.imageTintList = ColorStateList.valueOf(primaryText)
+                    binding.textView.setTextColor(Colors.primaryText)
+                    binding.imageView.imageTintList = ColorStateList.valueOf(Colors.primaryText)
                     return binding.root
                 }
             }
@@ -236,10 +213,9 @@ class MainActivity : AppCompatActivity() {
                 @SuppressLint("ViewHolder")
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val binding = ItemSpinnerBinding.inflate(layoutInflater)
-                    val primaryTXT = themeLiveData.value!!.primaryText(applicationContext)
                     binding.textView.text = getItem(position)
-                    binding.textView.setTextColor(primaryTXT)
-                    binding.imageView.imageTintList = ColorStateList.valueOf(primaryTXT)
+                    binding.textView.setTextColor(Colors.primaryText)
+                    binding.imageView.imageTintList = ColorStateList.valueOf(Colors.primaryText)
                     return binding.root
                 }
             }
@@ -249,21 +225,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeLiveData() {
-        themeLiveData.observe(this, { theme ->
-            storage.setTheme(theme)
-            val white = resources.getColor(R.color.white, null)
-            val primaryBackground = theme.primaryBackground(applicationContext)
-            val secondaryBackground = theme.secondaryBackground(applicationContext)
-            val primaryText = theme.primaryText(applicationContext)
-            val secondaryText = theme.secondaryText(applicationContext)
-            val primary = theme.primary(applicationContext)
+        app.themeLiveData.observe(this) {
+            window.statusBarColor = Colors.primaryBackground
 
-            window.statusBarColor = primaryBackground
-
-            val colorAnimator = ValueAnimator.ofArgb(
-                getColor(if (theme == Theme.Dark) R.color.darkSecondaryBackground else R.color.lightSecondaryBackground),
-                getColor(if (theme == Theme.Dark) R.color.darkPrimaryBackground else R.color.lightPrimaryBackground)
-            )
+            val colorAnimator =
+                ValueAnimator.ofArgb(Colors.secondaryBackground, Colors.primaryBackground)
             colorAnimator.duration = 250
             colorAnimator.addUpdateListener { animator ->
                 binding.root.setBackgroundColor(animator.animatedValue as Int)
@@ -271,13 +237,13 @@ class MainActivity : AppCompatActivity() {
             colorAnimator.start()
 
             binding.apply {
-                titleText.setTextColor(primaryText)
+                titleText.setTextColor(Colors.primaryText)
 
-                monthSpinner.backgroundTintList = ColorStateList.valueOf(primaryText)
-                monthSpinner.foregroundTintList = ColorStateList.valueOf(primaryText)
-                monthSpinner.findViewById<TextView>(R.id.textView)?.setTextColor(primaryText)
+                monthSpinner.backgroundTintList = ColorStateList.valueOf(Colors.primaryText)
+                monthSpinner.foregroundTintList = ColorStateList.valueOf(Colors.primaryText)
+                monthSpinner.findViewById<TextView>(R.id.textView)?.setTextColor(Colors.primaryText)
                 monthSpinner.findViewById<ImageView>(R.id.imageView)?.imageTintList =
-                    ColorStateList.valueOf(primaryText)
+                    ColorStateList.valueOf(Colors.primaryText)
                 monthSpinner.popupBackground.setTint(Color.WHITE)
                 for (i in 0 until monthSpinner.count) {
                     monthSpinner.adapter.getDropDownView(i, null, root)?.let {
@@ -285,25 +251,25 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                settingsButton.backgroundTintList = ColorStateList.valueOf(primary)
-                settingsButton.rippleColor = ColorStateList.valueOf(secondaryText)
-                settingsImage.imageTintList = ColorStateList.valueOf(white)
+                settingsButton.backgroundTintList = ColorStateList.valueOf(Colors.primary)
+                settingsButton.rippleColor = ColorStateList.valueOf(Colors.secondaryText)
+                settingsImage.imageTintList = ColorStateList.valueOf(Colors.white)
 
-                headerView.setBackgroundColor(primary)
+                headerView.setBackgroundColor(Colors.primary)
 
-                costEditText.backgroundTintList = ColorStateList.valueOf(primaryText)
-                costEditText.setHintTextColor(secondaryText)
-                costEditText.setTextColor(primaryText)
+                costEditText.backgroundTintList = ColorStateList.valueOf(Colors.primaryText)
+                costEditText.setHintTextColor(Colors.secondaryText)
+                costEditText.setTextColor(Colors.primaryText)
 
-                nameEditText.backgroundTintList = ColorStateList.valueOf(primaryText)
-                nameEditText.setHintTextColor(secondaryText)
-                nameEditText.setTextColor(primaryText)
+                nameEditText.backgroundTintList = ColorStateList.valueOf(Colors.primaryText)
+                nameEditText.setHintTextColor(Colors.secondaryText)
+                nameEditText.setTextColor(Colors.primaryText)
 
-                tagSpinner.backgroundTintList = ColorStateList.valueOf(primaryText)
-                tagSpinner.foregroundTintList = ColorStateList.valueOf(primaryText)
-                tagSpinner.findViewById<TextView>(R.id.textView)?.setTextColor(primaryText)
+                tagSpinner.backgroundTintList = ColorStateList.valueOf(Colors.primaryText)
+                tagSpinner.foregroundTintList = ColorStateList.valueOf(Colors.primaryText)
+                tagSpinner.findViewById<TextView>(R.id.textView)?.setTextColor(Colors.primaryText)
                 tagSpinner.findViewById<ImageView>(R.id.imageView)?.imageTintList =
-                    ColorStateList.valueOf(primaryText)
+                    ColorStateList.valueOf(Colors.primaryText)
                 tagSpinner.popupBackground.setTint(Color.WHITE)
                 for (i in 0 until tagSpinner.count) {
                     tagSpinner.adapter.getDropDownView(i, null, root)?.let { it ->
@@ -311,70 +277,32 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                enterButton.setBackgroundColor(primary)
-                enterButton.rippleColor = ColorStateList.valueOf(secondaryText)
+                enterButton.setBackgroundColor(Colors.primary)
+                enterButton.rippleColor = ColorStateList.valueOf(Colors.secondaryText)
 
-                summaryButton.setBackgroundColor(primary)
-                summaryButton.rippleColor = ColorStateList.valueOf(secondaryText)
+                summaryButton.setBackgroundColor(Colors.primary)
+                summaryButton.rippleColor = ColorStateList.valueOf(Colors.secondaryText)
 
-                recyclerView.setThumbColor(secondaryText)
-                recyclerView.setThumbInactiveColor(secondaryText)
-                recyclerView.setTrackColor(secondaryBackground)
-                recyclerView.setPopupTextColor(primaryBackground)
+                recyclerView.setThumbColor(Colors.secondaryText)
+                recyclerView.setThumbInactiveColor(Colors.secondaryText)
+                recyclerView.setTrackColor(Colors.secondaryBackground)
+                recyclerView.setPopupTextColor(Colors.primaryBackground)
             }
 
-            setRecyclerView(expensesLiveData.value!!)
-        })
-        minusLiveData.observe(this) { minus ->
-            binding.signButton.setBackgroundColor(getColor(if (minus) R.color.red else R.color.green))
-            binding.signButton.setRippleColorResource(if (minus) R.color.red else R.color.green)
-            binding.signButton.text = getString(if (minus) R.string.minus else R.string.plus)
-            binding.costEditText.hint =
-                getString(if (minus) R.string.cost_input_hint_minus else R.string.cost_input_hint_plus)
-            binding.nameEditText.hint =
-                getString(if (minus) R.string.expense_name_minus else R.string.expense_name_plus)
+            setRecyclerView(app.itemsLiveData.value!!)
         }
-        tagsLiveData.observe(this) { tags ->
+        app.tagsLiveData.observe(this) { tags ->
             val dropdownItems = ArrayList<String>()
-            dropdownItems.add(getString(R.string.no_tag))
+            dropdownItems.add(Strings.no_tag)
             dropdownItems.addAll(tags)
             setTagSpinner(dropdownItems)
         }
-        expensesLiveData.observe(this) { expenses ->
-            setMonthSpinner(ItemUtils.getAllMonths(expenses))
-            setRecyclerView(ItemUtils.filterByMonth(expenses, selectedMonthLiveData))
+        app.itemsLiveData.observe(this) { items ->
+            setMonthSpinner(ItemUtils.getAllMonths(items))
+            val dateStr = binding.monthSpinner.selectedItem as String
+            val filteredItems = ItemUtils.filterByMonth(app.items.toMutableList(), dateStr)
+            setRecyclerView(filteredItems)
         }
     }
 
-    private fun initData() {
-        storage = Storage(this)
-        tagsLiveData.postValue(storage.getTags())
-        themeLiveData.postValue(storage.getTheme())
-        database = ExpenseDatabase.getDatabase(this)
-        repository = ExpenseRepository(database.expenseDao())
-        loadData()
-    }
-
-    private fun loadData() {
-        CoroutineScope(Dispatchers.Default).launch {
-            val items = repository.getAllExpenses().sortedByDescending { it.date.toLong() }
-            expensesLiveData.postValue(items)
-        }
-    }
-
-    private fun handleKeyboardPopup() {
-        val rootView = findViewById<View>(android.R.id.content)
-        findViewById<View>(android.R.id.content).viewTreeObserver.addOnGlobalLayoutListener {
-            val rect = Rect()
-            rootView.getWindowVisibleDisplayFrame(rect)
-            val screenHeight = rootView.rootView.height
-            val keyboardHeight = screenHeight - rect.bottom
-
-            if (keyboardHeight > screenHeight * 0.15) {
-                rootView.translationY = -keyboardHeight.toFloat()
-            } else {
-                rootView.translationY = 0f
-            }
-        }
-    }
 }

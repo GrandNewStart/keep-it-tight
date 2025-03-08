@@ -5,21 +5,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.MutableLiveData
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import dev.bluelemonade.ledger.GlobalApplication
 import dev.bluelemonade.ledger.R
-import dev.bluelemonade.ledger.comm.Storage
-import dev.bluelemonade.ledger.comm.Theme
+import dev.bluelemonade.ledger.comm.Colors
 import dev.bluelemonade.ledger.databinding.FragmentTagManagementBinding
 import dev.bluelemonade.ledger.tag.TagAdapter
 
-class TagManagementSheet(
-    private val tags: MutableLiveData<List<String>>,
-    private val theme: MutableLiveData<Theme>
-) : BottomSheetDialogFragment() {
+class TagManagementSheet : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentTagManagementBinding
-    private lateinit var storage: Storage
+    private val app = GlobalApplication.instance
 
     override fun getTheme(): Int {
         return R.style.Theme_BottomSheetDialog_Fullscreen
@@ -30,12 +26,11 @@ class TagManagementSheet(
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        storage = Storage(requireContext())
         binding = FragmentTagManagementBinding.inflate(layoutInflater)
         binding.apply {
-            tags.observe(viewLifecycleOwner) {
+            app.tagsLiveData.observe(viewLifecycleOwner) {
                 recyclerView.apply {
-                    adapter = TagAdapter(ArrayList(it), theme.value!!)
+                    adapter = TagAdapter(ArrayList(it))
                 }
             }
             addButton.setOnClickListener {
@@ -50,31 +45,24 @@ class TagManagementSheet(
     }
 
     private fun observeLiveData() {
-        theme.observe(viewLifecycleOwner) { theme ->
-            val transparent = resources.getColor(R.color.transparent, null)
-            val primary = theme.primary(requireContext())
-            val secondary = theme.secondary(requireContext())
-            val primaryBG = theme.primaryBackground(requireContext())
-            val primaryTXT = theme.primaryText(requireContext())
-
+        app.themeLiveData.observe(viewLifecycleOwner) {
             binding.apply {
-                root.setBackgroundColor(primaryBG)
-                recyclerView.setBackgroundColor(transparent)
-                titleText.setTextColor(primaryTXT)
+                root.setBackgroundColor(Colors.primaryBackground)
+                recyclerView.setBackgroundColor(Colors.transparent)
+                titleText.setTextColor(Colors.primaryText)
 
-                addButton.setCardBackgroundColor(primary)
-                addButton.rippleColor = ColorStateList.valueOf(secondary)
+                addButton.setCardBackgroundColor(Colors.primary)
+                addButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
 
-                saveButton.setBackgroundColor(primary)
-                saveButton.rippleColor = ColorStateList.valueOf(secondary)
+                saveButton.setBackgroundColor(Colors.primary)
+                saveButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
             }
         }
     }
 
     private fun saveTags() {
         (binding.recyclerView.adapter as? TagAdapter)?.let { adapter ->
-            tags.postValue(adapter.getTags())
-            storage.setTags(adapter.getTags())
+            app.setTags(adapter.getTags())
             dismiss()
         }
     }

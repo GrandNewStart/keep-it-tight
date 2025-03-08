@@ -26,6 +26,10 @@ class DateUtils {
 
         fun createTimestamp(): Long {
             val date = Date()
+            return createTimestamp(date)
+        }
+
+        fun createTimestamp(date: Date): Long {
             val format = SimpleDateFormat("yyyy.MM.dd HH:mm", Locale.getDefault())
             val dateStr = format.format(date)
             return format.parse(dateStr)!!.time

@@ -14,13 +14,14 @@ import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.datepicker.MaterialDatePicker
+import dev.bluelemonade.ledger.GlobalApplication
 import dev.bluelemonade.ledger.comm.DateUtils
 import dev.bluelemonade.ledger.R
-import dev.bluelemonade.ledger.comm.Theme
+import dev.bluelemonade.ledger.comm.Colors
+import dev.bluelemonade.ledger.comm.Strings
 import dev.bluelemonade.ledger.databinding.FragmentOptionBinding
 import dev.bluelemonade.ledger.databinding.ItemSpinnerBinding
 import dev.bluelemonade.ledger.db.Expense
-import dev.bluelemonade.ledger.db.ExpenseRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,15 +29,12 @@ import java.util.Calendar
 import kotlin.math.absoluteValue
 
 class OptionSheet(
-    private val item: Expense,
-    private val theme: MutableLiveData<Theme>,
-    private val tags: MutableLiveData<List<String>>,
-    private val repository: ExpenseRepository,
-    private val onDataChange: () -> Unit
+    private val item: Expense
 ) : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentOptionBinding
     private val minusLiveData = MutableLiveData(true)
+    private val app = GlobalApplication.instance
 
     override fun getTheme(): Int {
         return R.style.Theme_BottomSheetDialog_Fullscreen
@@ -58,7 +56,7 @@ class OptionSheet(
             costEditText.setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_NEXT) {
                     nameEditText.requestFocus()
-                    true
+                    return@setOnEditorActionListener true
                 }
                 false
             }
@@ -66,7 +64,7 @@ class OptionSheet(
             nameEditText.setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     nameEditText.clearFocus()
-                    true
+                    return@setOnEditorActionListener true
                 }
                 false
             }
@@ -79,8 +77,8 @@ class OptionSheet(
     }
 
     private fun setSpinner(tag: String) {
-        val tags = tags.value!!.toMutableList()
-        tags.add(0, getString(R.string.no_tag))
+        val tags = app.tags.toMutableList()
+        tags.add(0, Strings.no_tag)
         binding.tagSpinner.let { spinner ->
             val adapter = object : ArrayAdapter<String>(
                 requireContext(),
@@ -91,9 +89,9 @@ class OptionSheet(
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val binding = ItemSpinnerBinding.inflate(layoutInflater)
                     binding.textView.text = getItem(position)
-                    binding.textView.setTextColor(theme.value!!.primaryText(requireContext()))
+                    binding.textView.setTextColor(Colors.primaryText)
                     binding.imageView.imageTintList =
-                        ColorStateList.valueOf(theme.value!!.primaryText(requireContext()))
+                        ColorStateList.valueOf(Colors.primaryText)
                     return binding.root
                 }
             }
@@ -123,50 +121,39 @@ class OptionSheet(
     }
 
     private fun observe() {
-        theme.observe(viewLifecycleOwner) { theme ->
-            val primaryBG = theme.primaryBackground(requireContext())
-            val primaryTXT = theme.primaryText(requireContext())
-            val secondaryTXT = theme.secondaryText(requireContext())
-            val primary = theme.primary(requireContext())
-            val secondary = theme.secondary(requireContext())
-
+        app.themeLiveData.observe(viewLifecycleOwner) {
             binding.apply {
-                root.setBackgroundColor(primaryBG)
-                dateTimeText.setTextColor(primaryTXT)
-                dateTimeEditButton.setCardBackgroundColor(primary)
-                dateTimeEditButton.rippleColor = ColorStateList.valueOf(secondary)
-                nameEditText.backgroundTintList = ColorStateList.valueOf(primaryTXT)
-                nameEditText.setTextColor(primaryTXT)
-                nameEditText.setHintTextColor(secondaryTXT)
-                costEditText.backgroundTintList = ColorStateList.valueOf(primaryTXT)
-                costEditText.setTextColor(primaryTXT)
-                costEditText.setHintTextColor(secondaryTXT)
-                tagSpinner.backgroundTintList = ColorStateList.valueOf(primaryTXT)
-                confirmButton.setBackgroundColor(primary)
-                confirmButton.rippleColor = ColorStateList.valueOf(secondary)
-                deleteButton.setBackgroundColor(primary)
-                deleteButton.rippleColor = ColorStateList.valueOf(secondary)
+                root.setBackgroundColor(Colors.primaryBackground)
+                dateTimeText.setTextColor(Colors.primaryText)
+                dateTimeEditButton.setCardBackgroundColor(Colors.primary)
+                dateTimeEditButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
+                nameEditText.backgroundTintList = ColorStateList.valueOf(Colors.primaryText)
+                nameEditText.setTextColor(Colors.primaryText)
+                nameEditText.setHintTextColor(Colors.secondaryText)
+                costEditText.backgroundTintList = ColorStateList.valueOf(Colors.primaryText)
+                costEditText.setTextColor(Colors.primaryText)
+                costEditText.setHintTextColor(Colors.secondaryText)
+                tagSpinner.backgroundTintList = ColorStateList.valueOf(Colors.primaryText)
+                confirmButton.setBackgroundColor(Colors.primary)
+                confirmButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
+                deleteButton.setBackgroundColor(Colors.primary)
+                deleteButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
             }
         }
         minusLiveData.observe(viewLifecycleOwner) { minus ->
-            binding.signButton.setBackgroundColor(
-                resources.getColor(
-                    if (minus) R.color.red else R.color.green,
-                    null
-                )
-            )
+            binding.signButton.setBackgroundColor(if (minus) Colors.red else Colors.green)
             binding.signButton.setRippleColorResource(if (minus) R.color.red else R.color.green)
-            binding.signButton.text = getString(if (minus) R.string.minus else R.string.plus)
+            binding.signButton.text = if (minus) Strings.minus else Strings.plus
             binding.costEditText.hint =
-                getString(if (minus) R.string.cost_input_hint_minus else R.string.cost_input_hint_plus)
+                if (minus) Strings.cost_input_hint_minus else Strings.cost_input_hint_plus
             binding.nameEditText.hint =
-                getString(if (minus) R.string.expense_name_minus else R.string.expense_name_plus)
+                if (minus) Strings.expense_name_minus else Strings.expense_name_plus
         }
     }
 
     private fun selectDateTime() {
         val datePicker = MaterialDatePicker.Builder.datePicker()
-            .setTitleText(getString(R.string.date_selection))
+            .setTitleText(Strings.date_selection)
             .build()
         datePicker.addOnPositiveButtonClickListener { selection ->
             val calendar = Calendar.getInstance()
@@ -215,16 +202,8 @@ class OptionSheet(
         if (!minusLiveData.value!!) {
             cost = "-$cost"
         }
-        val newItem = Expense(
-            item.id,
-            date.time.toString(),
-            name,
-            cost.toInt(),
-            tag
-        )
         CoroutineScope(Dispatchers.Default).launch {
-            repository.update(newItem)
-            onDataChange()
+            app.updateItem(item.id, name, cost.toInt(), tag, date)
             dismiss()
         }
     }
@@ -235,8 +214,7 @@ class OptionSheet(
             .setPositiveButton(R.string.confirm) { dialog, _ ->
                 dialog.dismiss()
                 CoroutineScope(Dispatchers.Default).launch {
-                    repository.delete(item)
-                    onDataChange()
+                    app.deleteItem(item)
                     dismiss()
                 }
             }

@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.MutableLiveData
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import dev.bluelemonade.ledger.GlobalApplication
 import dev.bluelemonade.ledger.R
+import dev.bluelemonade.ledger.comm.Colors
 import dev.bluelemonade.ledger.comm.Storage
 import dev.bluelemonade.ledger.comm.Theme
 import dev.bluelemonade.ledger.databinding.FragmentSettingsBinding
@@ -18,15 +20,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class SettingsSheet(
-    private val theme: MutableLiveData<Theme>,
-    private val expenses: MutableLiveData<List<Expense>>,
-    private val tags: MutableLiveData<List<String>>,
-    private val repository: ExpenseRepository
-) : BottomSheetDialogFragment() {
+class SettingsSheet : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentSettingsBinding
-    private lateinit var storage: Storage
+    private val app = GlobalApplication.instance
 
     override fun getTheme(): Int {
         return R.style.Theme_BottomSheetDialog_Fullscreen
@@ -37,13 +34,12 @@ class SettingsSheet(
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        storage = Storage(requireContext())
         binding = FragmentSettingsBinding.inflate(layoutInflater)
         binding.apply {
             // Tag management button setup
             manageTagButton.setOnClickListener {
                 dismiss()
-                TagManagementSheet(tags, theme).show(parentFragmentManager, "ManageTagSheet")
+                TagManagementSheet().show(parentFragmentManager, "ManageTagSheet")
             }
 
             // Reset button setup
@@ -73,11 +69,10 @@ class SettingsSheet(
                 )
             )
             themeSwitch.setOnCheckedChangeListener { _, isChecked ->
-                theme.postValue(if (isChecked) Theme.Dark else Theme.Light)
-                storage.setTheme(theme.value!!)
+                app.setTheme(if (isChecked) Theme.Dark else Theme.Light)
             }
-            themeSwitch.isChecked = storage.getTheme() == Theme.Dark
-            themeSwitchText.setText(if (theme.value == Theme.Dark) R.string.dark_mode else R.string.light_mode)
+            themeSwitch.isChecked = app.theme == Theme.Dark
+            themeSwitchText.setText(if (app.theme == Theme.Dark) R.string.dark_mode else R.string.light_mode)
         }
         observeLiveData()
         return binding.root
@@ -85,21 +80,17 @@ class SettingsSheet(
 
 
     private fun observeLiveData() {
-        theme.observe(viewLifecycleOwner) { theme ->
-            val primaryTXT = theme.primaryText(requireContext())
-            val secondaryTXT = theme.secondaryText(requireContext())
-            val primaryBG = theme.primaryBackground(requireContext())
-            val primary = theme.primary(requireContext())
-            val secondary = theme.secondary(requireContext())
+        app.themeLiveData.observe(viewLifecycleOwner) {
             binding.apply {
-                root.setBackgroundColor(primaryBG)
-                titleText.setTextColor(primaryTXT)
-                themeSwitchText.setTextColor(secondaryTXT)
-                themeSwitchText.text = resources.getText(if (theme == Theme.Dark) R.string.dark_mode else R.string.light_mode)
-                resetButton.setBackgroundColor(primary)
-                resetButton.rippleColor = ColorStateList.valueOf(secondary)
-                manageTagButton.setBackgroundColor(primary)
-                manageTagButton.rippleColor = ColorStateList.valueOf(secondary)
+                root.setBackgroundColor(Colors.primaryBackground)
+                titleText.setTextColor(Colors.primaryText)
+                themeSwitchText.setTextColor(Colors.secondaryText)
+                themeSwitchText.text =
+                    resources.getText(if (it == Theme.Dark) R.string.dark_mode else R.string.light_mode)
+                resetButton.setBackgroundColor(Colors.primary)
+                resetButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
+                manageTagButton.setBackgroundColor(Colors.primary)
+                manageTagButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
             }
         }
     }
@@ -110,10 +101,7 @@ class SettingsSheet(
             .setPositiveButton(R.string.confirm) { dialog, _ ->
                 dialog.dismiss()
                 CoroutineScope(Dispatchers.Default).launch {
-                    repository.deleteAll()
-                    expenses.postValue(listOf())
-                    storage.clear()
-                    tags.postValue(listOf())
+                    app.reset()
                     dismiss()
                 }
             }

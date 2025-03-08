@@ -8,13 +8,15 @@ import android.widget.EditText
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
+import dev.bluelemonade.ledger.GlobalApplication
 import dev.bluelemonade.ledger.R
 import dev.bluelemonade.ledger.comm.Theme
 
 class TagAdapter(
-    private val tags: ArrayList<String>,
-    private val theme: Theme,
+    private val tags: ArrayList<String>
 ) : RecyclerView.Adapter<TagAdapter.ViewHolder>() {
+
+    private val app = GlobalApplication.instance
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private lateinit var editText: EditText
@@ -22,11 +24,11 @@ class TagAdapter(
         fun bind(tag: String) {
             itemView.apply {
                 val primaryTXT = resources.getColor(
-                    if (theme == Theme.Dark) R.color.darkPrimaryText else R.color.lightPrimaryText,
+                    if (app.theme == Theme.Dark) R.color.darkPrimaryText else R.color.lightPrimaryText,
                     null
                 )
                 val secondaryTXT = resources.getColor(
-                    if (theme == Theme.Dark) R.color.darkSecondaryText else R.color.lightSecondaryText,
+                    if (app.theme == Theme.Dark) R.color.darkSecondaryText else R.color.lightSecondaryText,
                     null
                 )
                 setBackgroundColor(resources.getColor(R.color.transparent, null))

@@ -1,0 +1,43 @@
+package dev.bluelemonade.ledger.comm
+
+import dev.bluelemonade.ledger.GlobalApplication.Companion.instance
+import dev.bluelemonade.ledger.R
+
+object Strings {
+    val app_name = instance.resources.getString(R.string.app_name)
+    val dark_mode = instance.resources.getString(R.string.dark_mode)
+    val light_mode = instance.resources.getString(R.string.light_mode)
+    val cost_input_hint_minus = instance.resources.getString(R.string.cost_input_hint_minus)
+    val cost_input_hint_plus = instance.resources.getString(R.string.cost_input_hint_plus)
+    val expense_name_minus = instance.resources.getString(R.string.expense_name_minus)
+    val expense_name_plus = instance.resources.getString(R.string.expense_name_plus)
+    val enter = instance.resources.getString(R.string.enter)
+    val summary = instance.resources.getString(R.string.summary)
+    val this_year = instance.resources.getString(R.string.this_year)
+    val this_month = instance.resources.getString(R.string.this_month)
+    val today = instance.resources.getString(R.string.today)
+    val this_day = instance.resources.getString(R.string.this_day)
+    val settings = instance.resources.getString(R.string.settings)
+    val reset = instance.resources.getString(R.string.reset)
+    val add_tag = instance.resources.getString(R.string.add_tag)
+    val no_tag = instance.resources.getString(R.string.no_tag)
+    val all_tag = instance.resources.getString(R.string.all_tag)
+    val enter_name = instance.resources.getString(R.string.enter_name)
+    val enter_cost = instance.resources.getString(R.string.enter_cost)
+    val name = instance.resources.getString(R.string.name)
+    val tag = instance.resources.getString(R.string.tag)
+    val cost = instance.resources.getString(R.string.cost)
+    val duplicate_name = instance.resources.getString(R.string.duplicate_name)
+    val delete = instance.resources.getString(R.string.delete)
+    val confirm = instance.resources.getString(R.string.confirm)
+    val cancel = instance.resources.getString(R.string.cancel)
+    val deleted_tag = instance.resources.getString(R.string.deleted_tag)
+    val manage_tag = instance.resources.getString(R.string.manage_tag)
+    val save = instance.resources.getString(R.string.save)
+    val date_selection = instance.resources.getString(R.string.date_selection)
+    val ask_reset = instance.resources.getString(R.string.ask_reset)
+    val ask_delete_item = instance.resources.getString(R.string.ask_delete_item)
+    val invalid_input = instance.resources.getString(R.string.invalid_input)
+    val plus = instance.resources.getString(R.string.plus)
+    val minus = instance.resources.getString(R.string.minus)
+}
