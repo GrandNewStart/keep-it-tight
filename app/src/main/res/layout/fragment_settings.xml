@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/lightPrimaryBackground"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@color/lightPrimaryBackground">
 
     <TextView
         android:id="@+id/titleText"
@@ -18,6 +19,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/versionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:fontFamily="@font/pretendard_extrabold"
+        android:textColor="@color/lightSecondaryText"
+        android:textFontWeight="400"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/titleText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/titleText"
+        tools:text="정신차려 v1.0.0" />
 
     <LinearLayout
         android:id="@+id/themeSwitchContainer"
@@ -43,9 +57,9 @@
             android:id="@+id/themeSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:checked="true"
             app:thumbIconTint="@color/lightSecondaryText"
-            app:trackTint="@color/lightSecondaryBackground"
-            android:checked="true" />
+            app:trackTint="@color/lightSecondaryBackground" />
 
     </LinearLayout>
 
@@ -54,6 +68,7 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
         android:backgroundTint="@color/lightPrimary"
         android:fontFamily="@font/pretendard_bold"
         android:insetTop="0dp"
@@ -63,6 +78,7 @@
         android:textFontWeight="900"
         android:textSize="18sp"
         app:cornerRadius="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/resetButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/themeSwitchContainer" />
@@ -71,7 +87,7 @@
         android:id="@+id/resetButton"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
         android:backgroundTint="@color/lightPrimary"
         android:fontFamily="@font/pretendard_bold"
         android:insetTop="0dp"
@@ -81,9 +97,25 @@
         android:textFontWeight="900"
         android:textSize="18sp"
         app:cornerRadius="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/privacyButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/privacyButton"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:backgroundTint="@color/lightPrimary"
+        android:fontFamily="@font/pretendard_bold"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:text="@string/privacy_policy"
+        android:textColor="@color/white"
+        android:textFontWeight="900"
+        android:textSize="18sp"
+        app:cornerRadius="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/manageTagButton" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

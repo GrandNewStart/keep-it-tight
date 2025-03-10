@@ -40,4 +40,5 @@ object Strings {
     val invalid_input = instance.resources.getString(R.string.invalid_input)
     val plus = instance.resources.getString(R.string.plus)
     val minus = instance.resources.getString(R.string.minus)
+    val privacy_policy = instance.resources.getString(R.string.privacy_policy)
 }

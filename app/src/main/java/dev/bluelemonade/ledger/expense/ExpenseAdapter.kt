@@ -10,12 +10,11 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import dev.bluelemonade.ledger.comm.DateUtils
 import dev.bluelemonade.ledger.R
-import dev.bluelemonade.ledger.comm.Theme
+import dev.bluelemonade.ledger.comm.Colors
 import dev.bluelemonade.ledger.db.Expense
 
 class ExpenseAdapter(
     expenses: List<Expense>,
-    private val mode: Theme,
     private val listener: ExpenseAdapterListener? = null
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -38,18 +37,8 @@ class ExpenseAdapter(
     inner class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: RecyclerViewItem.Header) {
             (itemView as? MaterialButton)?.let {
-                it.backgroundTintList = ColorStateList.valueOf(
-                    it.resources.getColor(
-                        if (mode == Theme.Dark) R.color.darkSecondary else R.color.lightSecondary,
-                        null
-                    )
-                )
-                it.rippleColor = ColorStateList.valueOf(
-                    it.resources.getColor(
-                        if (mode == Theme.Dark) R.color.darkPrimary else R.color.lightPrimary,
-                        null
-                    )
-                )
+                it.backgroundTintList = ColorStateList.valueOf(Colors.secondary)
+                it.rippleColor = ColorStateList.valueOf(Colors.primary)
                 it.text = item.date
                 it.setOnClickListener {
                     listener?.onClick(item.date)
@@ -60,39 +49,29 @@ class ExpenseAdapter(
 
     inner class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: RecyclerViewItem.ExpenseItem) {
-            val transparent = itemView.resources.getColor(R.color.transparent, null)
-            val primaryTXT = itemView.resources.getColor(
-                if (mode == Theme.Dark) R.color.darkPrimaryText else R.color.lightPrimaryText, null
-            )
-            val secondaryBG = itemView.resources.getColor(
-                if (mode == Theme.Dark) R.color.darkSecondaryBackground else R.color.lightSecondaryBackground,
-                null
-            )
-            val red = itemView.resources.getColor(R.color.red, null)
-            val green = itemView.resources.getColor(R.color.green, null)
             itemView.apply {
                 (this as? MaterialCardView)?.let { root ->
                     root.isClickable = true
-                    root.setBackgroundColor(transparent)
-                    root.rippleColor = ColorStateList.valueOf(secondaryBG)
+                    root.setBackgroundColor(Colors.transparent)
+                    root.rippleColor = ColorStateList.valueOf(Colors.secondaryBackground)
                     root.setOnClickListener {
                         listener?.onClick(item.expense)
                     }
                     setText(
-                        findViewById(R.id.nameText), item.expense.name, primaryTXT
+                        findViewById(R.id.nameText), item.expense.name, Colors.primaryText
                     )
                     if (item.expense.cost < 0) {
                         setText(
-                            findViewById(R.id.costText), "${-item.expense.cost}", green
+                            findViewById(R.id.costText), "${-item.expense.cost}", Colors.green
                         )
                     } else {
                         setText(
-                            findViewById(R.id.costText), "${item.expense.cost}", red
+                            findViewById(R.id.costText), "${item.expense.cost}", Colors.red
                         )
                     }
 
                     setText(
-                        findViewById(R.id.optionText), item.expense.tag, primaryTXT
+                        findViewById(R.id.optionText), item.expense.tag, Colors.primaryText
                     )
                 }
             }

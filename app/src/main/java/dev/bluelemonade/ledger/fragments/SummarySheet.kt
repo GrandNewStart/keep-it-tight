@@ -24,6 +24,7 @@ import java.util.Calendar
 import java.util.Date
 
 class SummarySheet(
+    private val month: String? = null,
     private val date: String? = null
 ) : BottomSheetDialogFragment() {
 
@@ -65,7 +66,7 @@ class SummarySheet(
 
             val dropdownItems = ArrayList<String>()
             dropdownItems.add(Strings.no_tag)
-            dropdownItems.addAll(app.tags.toMutableList())
+            dropdownItems.addAll(app.tags)
             dropdownItems.add(Strings.all_tag)
             val adapter = object : ArrayAdapter<String>(
                 requireContext(),
@@ -91,10 +92,12 @@ class SummarySheet(
                     id: Long
                 ) {
                     (view as? TextView)?.setTextColor(Colors.primaryText)
-                    if (date == null)
-                        calculateSum(app.items, dropdownItems[position])
-                    else
-                        calculateSumForDate(app.items, dropdownItems[position], date)
+                    if (date != null) {
+                        calculateSumForDate(dropdownItems[position], date)
+                    }
+                    if (month != null) {
+                        calculateSumForMonth(dropdownItems[position], month)
+                    }
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -121,24 +124,20 @@ class SummarySheet(
                 dailyTotalText.setTextColor(Colors.primaryText)
             }
         }
-        app.itemsLiveData.observe(viewLifecycleOwner) { expenses ->
-            if (date == null)
-                calculateSum(expenses, tagLiveData.value!!)
-            else
-                calculateSumForDate(expenses, tagLiveData.value!!, date)
-        }
         tagLiveData.observe(viewLifecycleOwner) { tag ->
-            if (date == null)
-                calculateSum(app.items, tag)
-            else
-                calculateSumForDate(app.items, tag, date)
+            date?.let {
+                calculateSumForDate(tag, it)
+            }
+            month?.let {
+                calculateSumForMonth(tag, it)
+            }
         }
     }
 
     @SuppressLint("SetTextI18n")
-    private fun calculateSumForDate(expenses: List<Expense>, tag: String, date: String) {
+    private fun calculateSumForDate(tag: String, date: String) {
         var total = 0
-        expenses
+        app.items
             .filter { DateUtils.formatTimestampToDateOnly(it.date.toLong()) == date }
             .filter { tag == Strings.all_tag || it.tag == tag }
             .forEach { total += it.cost }
@@ -153,19 +152,19 @@ class SummarySheet(
     }
 
     @SuppressLint("SetTextI18n")
-    private fun calculateSum(expenses: List<Expense>, tag: String) {
+    private fun calculateSumForMonth(tag: String, month: String) {
         val today = Date()
         val calendar = Calendar.getInstance()
         calendar.time = today
         val currentYear = calendar.get(Calendar.YEAR)
-        val currentMonth = calendar.get(Calendar.MONTH) + 1
+        val currentMonth = month.substring(5,7).toInt()
         val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
 
         var yearTotal = 0
         var monthTotal = 0
         var dayTotal = 0
 
-        expenses
+        app.items
             .filter { tag == Strings.all_tag || it.tag == tag }
             .forEach {
                 val expenseDate = Date(it.date.toLong())
@@ -180,24 +179,24 @@ class SummarySheet(
             }
 
         if (yearTotal < 0) {
-            binding.yearlyTotalText.setTextColor(resources.getColor(R.color.green, null))
+            binding.yearlyTotalText.setTextColor(Colors.green)
             binding.yearlyTotalText.text = "+ ₩${-yearTotal}"
         } else {
-            binding.yearlyTotalText.setTextColor(resources.getColor(R.color.red, null))
+            binding.yearlyTotalText.setTextColor(Colors.red)
             binding.yearlyTotalText.text = "- ₩$yearTotal"
         }
         if (monthTotal < 0) {
-            binding.monthlyTotalText.setTextColor(resources.getColor(R.color.green, null))
+            binding.monthlyTotalText.setTextColor(Colors.green)
             binding.monthlyTotalText.text = "+ ₩${-monthTotal}"
         } else {
-            binding.monthlyTotalText.setTextColor(resources.getColor(R.color.red, null))
+            binding.monthlyTotalText.setTextColor(Colors.red)
             binding.monthlyTotalText.text = "- ₩$monthTotal"
         }
         if (dayTotal < 0) {
-            binding.dailyTotalText.setTextColor(resources.getColor(R.color.green, null))
+            binding.dailyTotalText.setTextColor(Colors.green)
             binding.dailyTotalText.text = "+ ₩${-dayTotal}"
         } else {
-            binding.dailyTotalText.setTextColor(resources.getColor(R.color.red, null))
+            binding.dailyTotalText.setTextColor(Colors.red)
             binding.dailyTotalText.text = "- ₩$dayTotal"
         }
     }

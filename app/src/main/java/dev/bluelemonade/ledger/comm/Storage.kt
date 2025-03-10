@@ -2,12 +2,11 @@ package dev.bluelemonade.ledger.comm
 
 import android.content.Context
 import android.content.SharedPreferences
-import dev.bluelemonade.ledger.R
 
 class Storage(context: Context) {
 
     private val prefs: SharedPreferences =
-        context.getSharedPreferences(context.getString(R.string.app_name), Context.MODE_PRIVATE)
+        context.getSharedPreferences(Strings.app_name, Context.MODE_PRIVATE)
 
     fun getTheme(): Theme {
         val string = prefs.getString("theme", Theme.Dark.name)!!

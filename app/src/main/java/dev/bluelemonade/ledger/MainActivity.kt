@@ -63,7 +63,8 @@ class MainActivity : AppCompatActivity() {
 
             // Summary button setup
             summaryButton.setOnClickListener {
-                SummarySheet().show(supportFragmentManager, "SummarySheet")
+                val month = monthSpinner.selectedItem as String
+                SummarySheet(month = month).show(supportFragmentManager, "SummarySheet")
             }
 
             // Toggle +/- sign
@@ -98,6 +99,7 @@ class MainActivity : AppCompatActivity() {
             costEditText.setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     costEditText.clearFocus()
+                    hideKeyboard(costEditText)
                     return@setOnEditorActionListener true
                 }
                 false
@@ -167,7 +169,6 @@ class MainActivity : AppCompatActivity() {
             binding.recyclerView.apply {
                 setBackgroundColor(Colors.transparent)
                 adapter = ExpenseAdapter(items,
-                    app.theme,
                     object : ExpenseAdapter.ExpenseAdapterListener {
                         override fun onClick(item: Expense) {
                             OptionSheet(item).show(
@@ -177,7 +178,7 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         override fun onClick(date: String) {
-                            SummarySheet(date).show(
+                            SummarySheet(date = date).show(
                                 supportFragmentManager, "SummarySheet"
                             )
                         }

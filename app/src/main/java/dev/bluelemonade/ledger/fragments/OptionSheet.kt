@@ -22,6 +22,7 @@ import dev.bluelemonade.ledger.comm.Strings
 import dev.bluelemonade.ledger.databinding.FragmentOptionBinding
 import dev.bluelemonade.ledger.databinding.ItemSpinnerBinding
 import dev.bluelemonade.ledger.db.Expense
+import dev.bluelemonade.ledger.extensions.hideKeyboard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -64,6 +65,7 @@ class OptionSheet(
             nameEditText.setOnEditorActionListener { _, actionId, _ ->
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     nameEditText.clearFocus()
+                    requireActivity().hideKeyboard(nameEditText)
                     return@setOnEditorActionListener true
                 }
                 false

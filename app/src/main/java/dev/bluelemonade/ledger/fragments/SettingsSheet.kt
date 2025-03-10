@@ -1,11 +1,15 @@
 package dev.bluelemonade.ledger.fragments
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Intent
 import android.content.res.ColorStateList
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.pm.PackageInfoCompat
 import androidx.lifecycle.MutableLiveData
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dev.bluelemonade.ledger.GlobalApplication
@@ -29,6 +33,7 @@ class SettingsSheet : BottomSheetDialogFragment() {
         return R.style.Theme_BottomSheetDialog_Fullscreen
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -36,6 +41,11 @@ class SettingsSheet : BottomSheetDialogFragment() {
     ): View {
         binding = FragmentSettingsBinding.inflate(layoutInflater)
         binding.apply {
+            val packageInfo = requireContext().packageManager.getPackageInfo("dev.bluelemonade.ledger", 0)
+            val versionName = packageInfo.versionName
+            val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
+            versionText.text = "v$versionName(${versionCode})"
+
             // Tag management button setup
             manageTagButton.setOnClickListener {
                 dismiss()
@@ -45,6 +55,13 @@ class SettingsSheet : BottomSheetDialogFragment() {
             // Reset button setup
             resetButton.setOnClickListener {
                 reset()
+            }
+
+            // Privacy Policy button
+            privacyButton.setOnClickListener {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("http://bluelemonade.co.kr/keep-it-tight/privacy-policy.html"))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
             }
 
             // Theme switch setup
@@ -84,6 +101,7 @@ class SettingsSheet : BottomSheetDialogFragment() {
             binding.apply {
                 root.setBackgroundColor(Colors.primaryBackground)
                 titleText.setTextColor(Colors.primaryText)
+                versionText.setTextColor(Colors.secondaryText)
                 themeSwitchText.setTextColor(Colors.secondaryText)
                 themeSwitchText.text =
                     resources.getText(if (it == Theme.Dark) R.string.dark_mode else R.string.light_mode)
@@ -91,6 +109,8 @@ class SettingsSheet : BottomSheetDialogFragment() {
                 resetButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
                 manageTagButton.setBackgroundColor(Colors.primary)
                 manageTagButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
+                privacyButton.setBackgroundColor(Colors.primary)
+                privacyButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
             }
         }
     }
