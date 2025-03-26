@@ -2,9 +2,12 @@ package dev.bluelemonade.ledger
 
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -15,6 +18,8 @@ import android.widget.CheckedTextView
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -31,12 +36,21 @@ import dev.bluelemonade.ledger.extensions.toast
 import dev.bluelemonade.ledger.fragments.OptionSheet
 import dev.bluelemonade.ledger.fragments.SettingsSheet
 import dev.bluelemonade.ledger.fragments.SummarySheet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
     private val app = GlobalApplication.instance
     private lateinit var binding: ActivityMainBinding
-
+    val exportFileLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) {
+        it?.let { uri -> exportFile(uri) }
+    }
+    val importFileLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { importFile(it) }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initView()
@@ -303,6 +317,70 @@ class MainActivity : AppCompatActivity() {
             val dateStr = binding.monthSpinner.selectedItem as String
             val filteredItems = ItemUtils.filterByMonth(app.items.toMutableList(), dateStr)
             setRecyclerView(filteredItems)
+        }
+    }
+
+    private fun exportFile(uri: Uri) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val jsonArray = app.items.map {
+                JSONObject().apply {
+                    put("id", it.id)
+                    put("name", it.name)
+                    put("date", it.date)
+                    put("cost", it.cost)
+                    put("tag", it.tag)
+                }
+            }
+            val output = contentResolver.openOutputStream(uri)
+            output?.bufferedWriter()?.use {
+                it.write(
+                    jsonArray.joinToString(
+                        prefix = "[",
+                        postfix = "]",
+                        separator = ","
+                    ) { obj -> obj.toString() })
+            }
+
+//            CoroutineScope(Dispatchers.Main).launch {
+//                AlertDialog.Builder(applicationContext)
+//                    .setMessage("Data exported successfully.")
+//                    .setPositiveButton("OK", null)
+//                    .show()
+//            }
+        }
+    }
+
+    private fun importFile(uri: Uri) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val input = contentResolver.openInputStream(uri)
+            val jsonString = input?.bufferedReader()?.use { it.readText() }
+
+            val jsonArray = org.json.JSONArray(jsonString)
+            val importedItems = mutableListOf<Expense>()
+
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                val item = Expense(
+                    id = obj.getString("id"),
+                    name = obj.getString("name"),
+                    date = obj.getString("date"),
+                    cost = obj.getInt("cost"),
+                    tag = obj.getString("tag")
+                )
+                importedItems.add(item)
+            }
+
+            // TODO: JOIN OLD & NEW DATA
+            for (i in 0 until jsonArray.length()) {
+                Log.d("TEST", jsonArray.get(i).toString())
+            }
+
+            CoroutineScope(Dispatchers.Main).launch {
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage("Import complete: ${importedItems.size} items.")
+                    .setPositiveButton("OK", null)
+                    .show()
+            }
         }
     }
 

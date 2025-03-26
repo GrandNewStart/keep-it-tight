@@ -1,7 +1,9 @@
 package dev.bluelemonade.ledger.comm
 
+import android.util.Log
 import dev.bluelemonade.ledger.db.Expense
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -35,6 +37,36 @@ object ItemUtils {
             val itemMonth = itemDateStr.substring(5, 7).toInt()
             return@filter itemYear == year && itemMonth == month
         }
+    }
+
+    fun getSum(items: List<Expense>, dateStr: String, tag: String): List<Int> {
+        var dayTotal = 0
+        var monthTotal = 0
+        var yearTotal = 0
+        val date = DateUtils.formatDateTimeToTimestamp(dateStr)
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        val targetDay = calendar.get(Calendar.DAY_OF_MONTH)
+        val targetMonth = calendar.get(Calendar.MONTH) + 1
+        val targetYear = calendar.get(Calendar.YEAR)
+
+        items
+//            .filter { DateUtils.formatTimestampToDateOnly(it.date.toLong()) == date.toString() }
+            .filter { tag == Strings.all_tag || it.tag == tag }
+            .forEach {
+                val expenseDate = Date(it.date.toLong())
+                calendar.time = expenseDate
+                if (calendar.get(Calendar.YEAR) == targetYear) {
+                    yearTotal += it.cost
+                    if (calendar.get(Calendar.MONTH) + 1 == targetMonth) {
+                        monthTotal += it.cost
+                        if (calendar.get(Calendar.DAY_OF_MONTH) == targetDay) {
+                            dayTotal += it.cost
+                        }
+                    }
+                }
+            }
+        return listOf(yearTotal, monthTotal, dayTotal)
     }
 
 }

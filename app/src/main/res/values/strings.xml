@@ -14,6 +14,8 @@
     <string name="this_day">이날</string>
     <string name="settings">설정</string>
     <string name="reset">초기화</string>
+    <string name="import_db">DB 가져오기</string>
+    <string name="export_db">DB 내보내기</string>
     <string name="add_tag">태그 추가</string>
     <string name="no_tag">태그 없음</string>
     <string name="all_tag">전체</string>

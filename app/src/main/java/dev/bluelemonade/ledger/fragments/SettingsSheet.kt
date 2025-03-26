@@ -9,12 +9,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.lifecycle.MutableLiveData
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dev.bluelemonade.ledger.GlobalApplication
+import dev.bluelemonade.ledger.MainActivity
 import dev.bluelemonade.ledger.R
 import dev.bluelemonade.ledger.comm.Colors
+import dev.bluelemonade.ledger.comm.DateUtils
 import dev.bluelemonade.ledger.comm.Storage
 import dev.bluelemonade.ledger.comm.Theme
 import dev.bluelemonade.ledger.databinding.FragmentSettingsBinding
@@ -23,6 +28,11 @@ import dev.bluelemonade.ledger.db.ExpenseRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SettingsSheet : BottomSheetDialogFragment() {
 
@@ -41,7 +51,8 @@ class SettingsSheet : BottomSheetDialogFragment() {
     ): View {
         binding = FragmentSettingsBinding.inflate(layoutInflater)
         binding.apply {
-            val packageInfo = requireContext().packageManager.getPackageInfo("dev.bluelemonade.ledger", 0)
+            val packageInfo =
+                requireContext().packageManager.getPackageInfo("dev.bluelemonade.ledger", 0)
             val versionName = packageInfo.versionName
             val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
             versionText.text = "v$versionName(${versionCode})"
@@ -52,6 +63,18 @@ class SettingsSheet : BottomSheetDialogFragment() {
                 TagManagementSheet().show(parentFragmentManager, "ManageTagSheet")
             }
 
+            importButton.setOnClickListener {
+                dismiss()
+                (requireActivity() as MainActivity).importFileLauncher.launch(arrayOf("application/json"))
+            }
+
+            exportButton.setOnClickListener {
+                dismiss()
+                val format = SimpleDateFormat("yyyy-MM-dd-HH:mm", Locale.getDefault())
+                val name = format.format(Date().time)
+                (requireActivity() as MainActivity).exportFileLauncher.launch("$name.json")
+            }
+
             // Reset button setup
             resetButton.setOnClickListener {
                 reset()
@@ -59,7 +82,10 @@ class SettingsSheet : BottomSheetDialogFragment() {
 
             // Privacy Policy button
             privacyButton.setOnClickListener {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("http://bluelemonade.co.kr/keep-it-tight/privacy-policy.html"))
+                val intent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("http://bluelemonade.co.kr/keep-it-tight/privacy-policy.html")
+                )
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
             }
@@ -114,6 +140,7 @@ class SettingsSheet : BottomSheetDialogFragment() {
             }
         }
     }
+
 
     private fun reset() {
         AlertDialog.Builder(context)

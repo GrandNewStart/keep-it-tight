@@ -3,6 +3,7 @@ package dev.bluelemonade.ledger.fragments
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,7 @@ import dev.bluelemonade.ledger.GlobalApplication
 import dev.bluelemonade.ledger.comm.DateUtils
 import dev.bluelemonade.ledger.R
 import dev.bluelemonade.ledger.comm.Colors
+import dev.bluelemonade.ledger.comm.ItemUtils
 import dev.bluelemonade.ledger.comm.Strings
 import dev.bluelemonade.ledger.comm.Theme
 import dev.bluelemonade.ledger.databinding.FragmentSummaryBinding
@@ -152,52 +154,42 @@ class SummarySheet(
     }
 
     @SuppressLint("SetTextI18n")
-    private fun calculateSumForMonth(tag: String, month: String) {
-        val today = Date()
+    private fun calculateSumForMonth(tag: String, yearMonthStr: String) {
+        val yearStr = yearMonthStr.split(".")[0]
+        val monthStr = yearMonthStr.split(".")[1]
         val calendar = Calendar.getInstance()
+        val today = Date()
         calendar.time = today
-        val currentYear = calendar.get(Calendar.YEAR)
-        val currentMonth = month.substring(5,7).toInt()
-        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
+        calendar.set(Calendar.YEAR, yearStr.toInt())
+        calendar.set(Calendar.MONTH, monthStr.toInt() - 1)
+        val updatedDate = calendar.time
 
-        var yearTotal = 0
-        var monthTotal = 0
-        var dayTotal = 0
+        val dateStr = DateUtils.formatTimestampToDateTime(updatedDate.time)
+        val sums = ItemUtils.getSum(app.items, dateStr, tag)
 
-        app.items
-            .filter { tag == Strings.all_tag || it.tag == tag }
-            .forEach {
-                val expenseDate = Date(it.date.toLong())
-                calendar.time = expenseDate
-                val expenseYear = calendar.get(Calendar.YEAR)
-                val expenseMonth = calendar.get(Calendar.MONTH) + 1
-                val expenseDay = calendar.get(Calendar.DAY_OF_MONTH)
-
-                if (expenseYear == currentYear) yearTotal += it.cost
-                if (expenseMonth == currentMonth) monthTotal += it.cost
-                if (expenseDay == currentDay) dayTotal += it.cost
-            }
-
-        if (yearTotal < 0) {
+        binding.yearlyText.text = yearStr + "년"
+        if (sums[0] < 0) {
             binding.yearlyTotalText.setTextColor(Colors.green)
-            binding.yearlyTotalText.text = "+ ₩${-yearTotal}"
+            binding.yearlyTotalText.text = "+ ₩${-sums[0]}"
         } else {
             binding.yearlyTotalText.setTextColor(Colors.red)
-            binding.yearlyTotalText.text = "- ₩$yearTotal"
+            binding.yearlyTotalText.text = "- ₩${sums[0]}"
         }
-        if (monthTotal < 0) {
+        binding.monthlyText.text = "${yearStr}년 ${monthStr.toInt()}월"
+        if (sums[1] < 0) {
             binding.monthlyTotalText.setTextColor(Colors.green)
-            binding.monthlyTotalText.text = "+ ₩${-monthTotal}"
+            binding.monthlyTotalText.text = "+ ₩${-sums[1]}"
         } else {
             binding.monthlyTotalText.setTextColor(Colors.red)
-            binding.monthlyTotalText.text = "- ₩$monthTotal"
+            binding.monthlyTotalText.text = "- ₩${sums[1]}"
         }
-        if (dayTotal < 0) {
+        binding.dailyText.text = DateUtils.formatTimestampToDateKorean(today.time)
+        if (sums[2] < 0) {
             binding.dailyTotalText.setTextColor(Colors.green)
-            binding.dailyTotalText.text = "+ ₩${-dayTotal}"
+            binding.dailyTotalText.text = "+ ₩${-sums[2]}"
         } else {
             binding.dailyTotalText.setTextColor(Colors.red)
-            binding.dailyTotalText.text = "- ₩$dayTotal"
+            binding.dailyTotalText.text = "- ₩${sums[2]}"
         }
     }
 
