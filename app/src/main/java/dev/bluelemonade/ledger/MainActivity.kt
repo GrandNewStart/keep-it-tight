@@ -354,25 +354,62 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             val input = contentResolver.openInputStream(uri)
             val jsonString = input?.bufferedReader()?.use { it.readText() }
-
             val jsonArray = org.json.JSONArray(jsonString)
             val importedItems = mutableListOf<Expense>()
 
-            for (i in 0 until jsonArray.length()) {
-                val obj = jsonArray.getJSONObject(i)
-                val item = Expense(
-                    id = obj.getString("id"),
-                    name = obj.getString("name"),
-                    date = obj.getString("date"),
-                    cost = obj.getInt("cost"),
-                    tag = obj.getString("tag")
-                )
-                importedItems.add(item)
+            try {
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.optJSONObject(i) ?: continue
+
+                    val id: String? = obj.optString("id", null)
+                    val name: String? = obj.optString("name", null)
+                    val date: String? = obj.optString("date", null)
+                    val cost = obj.optInt("cost", Int.MIN_VALUE)
+                    val tag: String? = obj.optString("tag", null)
+
+                    if (id == null || name == null || date == null || tag == null || cost == Int.MIN_VALUE) {
+                        continue
+                    }
+
+                    importedItems.add(Expense(id, name, date, cost, tag))
+                }
+            } catch (e: Exception) {
+                Log.e("Import", "Failed to import JSON", e)
+                CoroutineScope(Dispatchers.Main).launch {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setMessage("Failed to import: ${e.message}")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+                return@launch
             }
 
-            // TODO: JOIN OLD & NEW DATA
-            for (i in 0 until jsonArray.length()) {
-                Log.d("TEST", jsonArray.get(i).toString())
+            // Filter out duplicates based on ID
+            val existingIds = app.items.map { it.id }.toSet()
+            val newItems = importedItems.filter { it.id !in existingIds }
+
+            if (newItems.isEmpty()) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setMessage("No new items to import.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+                return@launch
+            }
+
+            // Ask user for confirmation to merge
+            CoroutineScope(Dispatchers.Main).launch {
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle("Confirm Import")
+                    .setMessage("Import ${newItems.size} new item(s) into your data?")
+                    .setPositiveButton("Import") { _, _ ->
+                        CoroutineScope(Dispatchers.IO).launch {
+                            app.addItems(newItems)
+                        }
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
             }
 
             CoroutineScope(Dispatchers.Main).launch {

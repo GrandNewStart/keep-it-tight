@@ -70,7 +70,7 @@ class SettingsSheet : BottomSheetDialogFragment() {
 
             exportButton.setOnClickListener {
                 dismiss()
-                val format = SimpleDateFormat("yyyy-MM-dd-HH:mm", Locale.getDefault())
+                val format = SimpleDateFormat("yyyyMMddHHmm", Locale.getDefault())
                 val name = format.format(Date().time)
                 (requireActivity() as MainActivity).exportFileLauncher.launch("$name.json")
             }

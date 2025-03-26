@@ -61,6 +61,13 @@ class GlobalApplication : Application() {
         }
     }
 
+    fun addItems(items: List<Expense>) {
+        CoroutineScope(Dispatchers.Default).launch {
+            repository.insert(items)
+            loadItems()
+        }
+    }
+
     fun updateItem(id: String, name: String, cost: Int, tag: String, date: Date) {
         CoroutineScope(Dispatchers.Default).launch {
             repository.update(
