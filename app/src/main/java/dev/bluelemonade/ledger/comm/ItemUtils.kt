@@ -1,7 +1,7 @@
 package dev.bluelemonade.ledger.comm
 
-import android.util.Log
 import dev.bluelemonade.ledger.db.Expense
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -51,7 +51,6 @@ object ItemUtils {
         val targetYear = calendar.get(Calendar.YEAR)
 
         items
-//            .filter { DateUtils.formatTimestampToDateOnly(it.date.toLong()) == date.toString() }
             .filter { tag == Strings.all_tag || it.tag == tag }
             .forEach {
                 val expenseDate = Date(it.date.toLong())
@@ -67,6 +66,39 @@ object ItemUtils {
                 }
             }
         return listOf(yearTotal, monthTotal, dayTotal)
+    }
+
+    fun convertToJsonArray(items: List<Expense>): List<JSONObject> {
+        return items.map {
+            JSONObject().apply {
+                put("id", it.id)
+                put("name", it.name)
+                put("date", it.date)
+                put("cost", it.cost)
+                put("tag", it.tag)
+            }
+        }
+    }
+
+    fun parseJsonArray(jsonString: String): List<Expense> {
+        val jsonArray = org.json.JSONArray(jsonString)
+        val importedItems = mutableListOf<Expense>()
+        for (i in 0 until jsonArray.length()) {
+            val obj = jsonArray.optJSONObject(i) ?: continue
+
+            val id: String? = obj.optString("id", null)
+            val name: String? = obj.optString("name", null)
+            val date: String? = obj.optString("date", null)
+            val cost = obj.optInt("cost", Int.MIN_VALUE)
+            val tag: String? = obj.optString("tag", null)
+
+            if (id == null || name == null || date == null || tag == null || cost == Int.MIN_VALUE) {
+                continue
+            }
+
+            importedItems.add(Expense(id, date,name, cost, tag))
+        }
+        return importedItems
     }
 
 }

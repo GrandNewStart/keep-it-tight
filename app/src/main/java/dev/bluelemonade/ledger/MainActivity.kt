@@ -18,7 +18,6 @@ import android.widget.CheckedTextView
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -39,18 +38,20 @@ import dev.bluelemonade.ledger.fragments.SummarySheet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
     private val app = GlobalApplication.instance
     private lateinit var binding: ActivityMainBinding
-    val exportFileLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) {
-        it?.let { uri -> exportFile(uri) }
-    }
-    val importFileLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let { importFile(it) }
-    }
+    val exportFileLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) {
+            it?.let { uri -> exportFile(uri) }
+        }
+    val importFileLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri?.let { importFile(it) }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initView()
@@ -182,7 +183,8 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             binding.recyclerView.apply {
                 setBackgroundColor(Colors.transparent)
-                adapter = ExpenseAdapter(items,
+                adapter = ExpenseAdapter(
+                    items,
                     object : ExpenseAdapter.ExpenseAdapterListener {
                         override fun onClick(item: Expense) {
                             OptionSheet(item).show(
@@ -322,31 +324,34 @@ class MainActivity : AppCompatActivity() {
 
     private fun exportFile(uri: Uri) {
         CoroutineScope(Dispatchers.IO).launch {
-            val jsonArray = app.items.map {
-                JSONObject().apply {
-                    put("id", it.id)
-                    put("name", it.name)
-                    put("date", it.date)
-                    put("cost", it.cost)
-                    put("tag", it.tag)
+            val jsonArray = ItemUtils.convertToJsonArray(app.items)
+            try {
+                val output = contentResolver.openOutputStream(uri)
+                output?.bufferedWriter()?.use {
+                    it.write(
+                        jsonArray.joinToString(
+                            prefix = "[",
+                            postfix = "]",
+                            separator = ","
+                        ) { obj -> obj.toString() })
                 }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "exportFile: failed to write file", e)
+                CoroutineScope(Dispatchers.Main).launch {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle(getString(R.string.export_failure))
+                        .setMessage("message: ${e.message}")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+                return@launch
             }
-            val output = contentResolver.openOutputStream(uri)
-            output?.bufferedWriter()?.use {
-                it.write(
-                    jsonArray.joinToString(
-                        prefix = "[",
-                        postfix = "]",
-                        separator = ","
-                    ) { obj -> obj.toString() })
+            CoroutineScope(Dispatchers.Main).launch {
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(getString(R.string.export_success))
+                    .setPositiveButton(getString(R.string.confirm), null)
+                    .show()
             }
-
-//            CoroutineScope(Dispatchers.Main).launch {
-//                AlertDialog.Builder(applicationContext)
-//                    .setMessage("Data exported successfully.")
-//                    .setPositiveButton("OK", null)
-//                    .show()
-//            }
         }
     }
 
@@ -354,68 +359,51 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             val input = contentResolver.openInputStream(uri)
             val jsonString = input?.bufferedReader()?.use { it.readText() }
-            val jsonArray = org.json.JSONArray(jsonString)
-            val importedItems = mutableListOf<Expense>()
+            val importedItems: List<Expense>
 
             try {
-                for (i in 0 until jsonArray.length()) {
-                    val obj = jsonArray.optJSONObject(i) ?: continue
-
-                    val id: String? = obj.optString("id", null)
-                    val name: String? = obj.optString("name", null)
-                    val date: String? = obj.optString("date", null)
-                    val cost = obj.optInt("cost", Int.MIN_VALUE)
-                    val tag: String? = obj.optString("tag", null)
-
-                    if (id == null || name == null || date == null || tag == null || cost == Int.MIN_VALUE) {
-                        continue
-                    }
-
-                    importedItems.add(Expense(id, name, date, cost, tag))
-                }
+                importedItems = ItemUtils.parseJsonArray(jsonString!!)
             } catch (e: Exception) {
-                Log.e("Import", "Failed to import JSON", e)
+                Log.e("MainActivity", "importFile: failed to import JSON", e)
                 CoroutineScope(Dispatchers.Main).launch {
                     AlertDialog.Builder(this@MainActivity)
-                        .setMessage("Failed to import: ${e.message}")
-                        .setPositiveButton("OK", null)
+                        .setTitle(getString(R.string.invalid_file))
+                        .setMessage("message: ${e.message}")
+                        .setPositiveButton(getString(R.string.confirm), null)
                         .show()
                 }
                 return@launch
             }
 
-            // Filter out duplicates based on ID
             val existingIds = app.items.map { it.id }.toSet()
             val newItems = importedItems.filter { it.id !in existingIds }
 
             if (newItems.isEmpty()) {
                 CoroutineScope(Dispatchers.Main).launch {
                     AlertDialog.Builder(this@MainActivity)
-                        .setMessage("No new items to import.")
-                        .setPositiveButton("OK", null)
+                        .setMessage(getString(R.string.no_new_entries))
+                        .setPositiveButton(getString(R.string.confirm), null)
                         .show()
                 }
                 return@launch
             }
 
-            // Ask user for confirmation to merge
             CoroutineScope(Dispatchers.Main).launch {
                 AlertDialog.Builder(this@MainActivity)
-                    .setTitle("Confirm Import")
-                    .setMessage("Import ${newItems.size} new item(s) into your data?")
-                    .setPositiveButton("Import") { _, _ ->
+                    .setTitle(getString(R.string.import_db))
+                    .setMessage("${newItems.size}${getString(R.string.ask_import_db)}")
+                    .setPositiveButton(getString(R.string.confirm)) { _, _ ->
                         CoroutineScope(Dispatchers.IO).launch {
                             app.addItems(newItems)
+                            CoroutineScope(Dispatchers.Main).launch {
+                                AlertDialog.Builder(this@MainActivity)
+                                    .setMessage(getString(R.string.import_success))
+                                    .setPositiveButton(getString(R.string.confirm), null)
+                                    .show()
+                            }
                         }
                     }
-                    .setNegativeButton("Cancel", null)
-                    .show()
-            }
-
-            CoroutineScope(Dispatchers.Main).launch {
-                AlertDialog.Builder(this@MainActivity)
-                    .setMessage("Import complete: ${importedItems.size} items.")
-                    .setPositiveButton("OK", null)
+                    .setNegativeButton(getString(R.string.cancel), null)
                     .show()
             }
         }

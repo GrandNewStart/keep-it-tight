@@ -2,6 +2,7 @@ package dev.bluelemonade.ledger
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.room.Room
 import dev.bluelemonade.ledger.comm.DateUtils
@@ -38,10 +39,11 @@ class GlobalApplication : Application() {
         database = ExpenseDatabase.getDatabase(this)
         repository = ExpenseRepository(database.expenseDao())
         loadItems()
+
     }
 
     private fun loadItems() {
-        CoroutineScope(Dispatchers.Default).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             val items = repository.getAllExpenses().sortedByDescending { it.date.toLong() }
             itemsLiveData.postValue(items)
         }

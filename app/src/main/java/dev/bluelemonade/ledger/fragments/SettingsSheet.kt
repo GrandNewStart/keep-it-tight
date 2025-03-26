@@ -9,30 +9,21 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.pm.PackageInfoCompat
-import androidx.lifecycle.MutableLiveData
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dev.bluelemonade.ledger.GlobalApplication
 import dev.bluelemonade.ledger.MainActivity
 import dev.bluelemonade.ledger.R
 import dev.bluelemonade.ledger.comm.Colors
-import dev.bluelemonade.ledger.comm.DateUtils
-import dev.bluelemonade.ledger.comm.Storage
 import dev.bluelemonade.ledger.comm.Theme
 import dev.bluelemonade.ledger.databinding.FragmentSettingsBinding
-import dev.bluelemonade.ledger.db.Expense
-import dev.bluelemonade.ledger.db.ExpenseRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.json.JSONObject
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.net.toUri
 
 class SettingsSheet : BottomSheetDialogFragment() {
 
@@ -63,11 +54,13 @@ class SettingsSheet : BottomSheetDialogFragment() {
                 TagManagementSheet().show(parentFragmentManager, "ManageTagSheet")
             }
 
+            // Import button setup
             importButton.setOnClickListener {
                 dismiss()
                 (requireActivity() as MainActivity).importFileLauncher.launch(arrayOf("application/json"))
             }
 
+            // Export button setup
             exportButton.setOnClickListener {
                 dismiss()
                 val format = SimpleDateFormat("yyyyMMddHHmm", Locale.getDefault())
@@ -84,7 +77,7 @@ class SettingsSheet : BottomSheetDialogFragment() {
             privacyButton.setOnClickListener {
                 val intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("http://bluelemonade.co.kr/keep-it-tight/privacy-policy.html")
+                    "http://bluelemonade.co.kr/keep-it-tight/privacy-policy.html".toUri()
                 )
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
@@ -131,6 +124,10 @@ class SettingsSheet : BottomSheetDialogFragment() {
                 themeSwitchText.setTextColor(Colors.secondaryText)
                 themeSwitchText.text =
                     resources.getText(if (it == Theme.Dark) R.string.dark_mode else R.string.light_mode)
+                importButton.setBackgroundColor(Colors.primary)
+                importButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
+                exportButton.setBackgroundColor(Colors.primary)
+                exportButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
                 resetButton.setBackgroundColor(Colors.primary)
                 resetButton.rippleColor = ColorStateList.valueOf(Colors.secondary)
                 manageTagButton.setBackgroundColor(Colors.primary)
