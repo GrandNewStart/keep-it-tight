@@ -2,9 +2,12 @@ package dev.bluelemonade.ledger
 
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -15,6 +18,7 @@ import android.widget.CheckedTextView
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -31,11 +35,22 @@ import dev.bluelemonade.ledger.extensions.toast
 import dev.bluelemonade.ledger.fragments.OptionSheet
 import dev.bluelemonade.ledger.fragments.SettingsSheet
 import dev.bluelemonade.ledger.fragments.SummarySheet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private val app = GlobalApplication.instance
     private lateinit var binding: ActivityMainBinding
+    val exportFileLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) {
+            it?.let { uri -> exportFile(uri) }
+        }
+    val importFileLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri?.let { importFile(it) }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -168,7 +183,8 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             binding.recyclerView.apply {
                 setBackgroundColor(Colors.transparent)
-                adapter = ExpenseAdapter(items,
+                adapter = ExpenseAdapter(
+                    items,
                     object : ExpenseAdapter.ExpenseAdapterListener {
                         override fun onClick(item: Expense) {
                             OptionSheet(item).show(
@@ -303,6 +319,93 @@ class MainActivity : AppCompatActivity() {
             val dateStr = binding.monthSpinner.selectedItem as String
             val filteredItems = ItemUtils.filterByMonth(app.items.toMutableList(), dateStr)
             setRecyclerView(filteredItems)
+        }
+    }
+
+    private fun exportFile(uri: Uri) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val jsonArray = ItemUtils.convertToJsonArray(app.items)
+            try {
+                val output = contentResolver.openOutputStream(uri)
+                output?.bufferedWriter()?.use {
+                    it.write(
+                        jsonArray.joinToString(
+                            prefix = "[",
+                            postfix = "]",
+                            separator = ","
+                        ) { obj -> obj.toString() })
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "exportFile: failed to write file", e)
+                CoroutineScope(Dispatchers.Main).launch {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle(getString(R.string.export_failure))
+                        .setMessage("message: ${e.message}")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+                return@launch
+            }
+            CoroutineScope(Dispatchers.Main).launch {
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(getString(R.string.export_success))
+                    .setPositiveButton(getString(R.string.confirm), null)
+                    .show()
+            }
+        }
+    }
+
+    private fun importFile(uri: Uri) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val input = contentResolver.openInputStream(uri)
+            val jsonString = input?.bufferedReader()?.use { it.readText() }
+            val importedItems: List<Expense>
+
+            try {
+                importedItems = ItemUtils.parseJsonArray(jsonString!!)
+            } catch (e: Exception) {
+                Log.e("MainActivity", "importFile: failed to import JSON", e)
+                CoroutineScope(Dispatchers.Main).launch {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle(getString(R.string.invalid_file))
+                        .setMessage("message: ${e.message}")
+                        .setPositiveButton(getString(R.string.confirm), null)
+                        .show()
+                }
+                return@launch
+            }
+
+            val existingIds = app.items.map { it.id }.toSet()
+            val newItems = importedItems.filter { it.id !in existingIds }
+
+            if (newItems.isEmpty()) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    AlertDialog.Builder(this@MainActivity)
+                        .setMessage(getString(R.string.no_new_entries))
+                        .setPositiveButton(getString(R.string.confirm), null)
+                        .show()
+                }
+                return@launch
+            }
+
+            CoroutineScope(Dispatchers.Main).launch {
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle(getString(R.string.import_db))
+                    .setMessage("${newItems.size}${getString(R.string.ask_import_db)}")
+                    .setPositiveButton(getString(R.string.confirm)) { _, _ ->
+                        CoroutineScope(Dispatchers.IO).launch {
+                            app.addItems(newItems)
+                            CoroutineScope(Dispatchers.Main).launch {
+                                AlertDialog.Builder(this@MainActivity)
+                                    .setMessage(getString(R.string.import_success))
+                                    .setPositiveButton(getString(R.string.confirm), null)
+                                    .show()
+                            }
+                        }
+                    }
+                    .setNegativeButton(getString(R.string.cancel), null)
+                    .show()
+            }
         }
     }
 

@@ -14,6 +14,8 @@
     <string name="this_day">이날</string>
     <string name="settings">설정</string>
     <string name="reset">초기화</string>
+    <string name="import_db">DB 가져오기</string>
+    <string name="export_db">DB 내보내기</string>
     <string name="add_tag">태그 추가</string>
     <string name="no_tag">태그 없음</string>
     <string name="all_tag">전체</string>
@@ -36,4 +38,10 @@
     <string name="plus">+</string>
     <string name="minus">-</string>
     <string name="privacy_policy">개인정보처리방침</string>
+    <string name="export_success">데이터를 성공적으로 저장하였습니다.</string>
+    <string name="import_success">데이터를 성공적으로 불러왔습니다.</string>
+    <string name="invalid_file">손상되었거나 잘못된 파일입니다.</string>
+    <string name="export_failure">데이터 저장에 실패했습니다.</string>
+    <string name="no_new_entries">새로 저장할 데이터가 없습니다.</string>
+    <string name="ask_import_db">개의 새로운 데이터를 저장하시겠습니까?</string>
 </resources>

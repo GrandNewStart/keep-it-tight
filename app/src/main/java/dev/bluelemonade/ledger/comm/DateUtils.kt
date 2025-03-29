@@ -6,6 +6,12 @@ import java.util.Locale
 
 object DateUtils {
 
+    fun formatTimestampToDateKorean(timestamp: Long): String {
+        val sdf = SimpleDateFormat("yyyy년 MM월 dd일", Locale.getDefault())
+        val date = Date(timestamp)
+        return sdf.format(date)
+    }
+
     fun formatTimestampToDateOnly(timestamp: Long): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val date = Date(timestamp)

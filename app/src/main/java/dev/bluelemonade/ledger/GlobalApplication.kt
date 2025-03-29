@@ -2,13 +2,16 @@ package dev.bluelemonade.ledger
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import androidx.room.Room
 import dev.bluelemonade.ledger.comm.DateUtils
 import dev.bluelemonade.ledger.comm.Storage
 import dev.bluelemonade.ledger.comm.Theme
 import dev.bluelemonade.ledger.db.Expense
 import dev.bluelemonade.ledger.db.ExpenseDatabase
 import dev.bluelemonade.ledger.db.ExpenseRepository
+import dev.bluelemonade.ledger.db.MIGRATION_1_2
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,10 +39,11 @@ class GlobalApplication : Application() {
         database = ExpenseDatabase.getDatabase(this)
         repository = ExpenseRepository(database.expenseDao())
         loadItems()
+
     }
 
     private fun loadItems() {
-        CoroutineScope(Dispatchers.Default).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             val items = repository.getAllExpenses().sortedByDescending { it.date.toLong() }
             itemsLiveData.postValue(items)
         }
@@ -59,7 +63,14 @@ class GlobalApplication : Application() {
         }
     }
 
-    fun updateItem(id: Int, name: String, cost: Int, tag: String, date: Date) {
+    fun addItems(items: List<Expense>) {
+        CoroutineScope(Dispatchers.Default).launch {
+            repository.insert(items)
+            loadItems()
+        }
+    }
+
+    fun updateItem(id: String, name: String, cost: Int, tag: String, date: Date) {
         CoroutineScope(Dispatchers.Default).launch {
             repository.update(
                 Expense(

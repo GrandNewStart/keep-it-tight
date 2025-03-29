@@ -78,10 +78,46 @@
         android:textFontWeight="900"
         android:textSize="18sp"
         app:cornerRadius="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/resetButton"
+        app:layout_constraintBottom_toTopOf="@+id/importButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/themeSwitchContainer" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/importButton"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="4dp"
+        android:backgroundTint="@color/lightPrimary"
+        android:fontFamily="@font/pretendard_bold"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:text="@string/import_db"
+        android:textColor="@color/white"
+        android:textFontWeight="900"
+        android:textSize="18sp"
+        app:cornerRadius="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/exportButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/exportButton"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="4dp"
+        android:backgroundTint="@color/lightPrimary"
+        android:fontFamily="@font/pretendard_bold"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:text="@string/export_db"
+        android:textColor="@color/white"
+        android:textFontWeight="900"
+        android:textSize="18sp"
+        app:cornerRadius="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/resetButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/resetButton"
