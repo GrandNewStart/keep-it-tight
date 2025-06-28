@@ -11,15 +11,22 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ExpenseDao {
 
-    @Query("SELECT * FROM expenses ORDER BY date DESC")
+    @Query("SELECT * FROM expense_table ORDER BY date ASC")
     fun getAll(): Flow<List<Expense>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(expense: Expense)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(expenses: List<Expense>)
 
     @Update
     suspend fun update(expense: Expense)
 
     @Delete
     suspend fun delete(expense: Expense)
+
+    @Query("DELETE FROM expense_table")
+    suspend fun deleteAll()
+
 }

@@ -8,15 +8,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ArrowDropDown
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,6 +32,9 @@ import androidx.compose.material3.TopAppBar
 import dev.bluelemonade.ledger.db.AppDatabase
 import kotlin.math.absoluteValue
 import androidx.compose.material3.ModalBottomSheet
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,16 +47,44 @@ fun HomeView() {
 
     var showInputSheet by remember { mutableStateOf(false) }
     var selectedExpense by remember { mutableStateOf<Expense?>(null) }
-
-
-    val grouped = displayExpenses.groupBy {
-        it.date.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
-    }
-
     var selectedMonth by remember { mutableStateOf("6월") }
     var selectedYear by remember { mutableStateOf("2025년") }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    val grouped = displayExpenses
+        .filter {
+            it.date.year == selectedYear.removeSuffix("년").toIntOrNull() &&
+            it.date.monthValue == selectedMonth.removeSuffix("월").toIntOrNull()
+        }
+        .sortedByDescending { it.date }
+        .groupBy {
+            it.date.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+        }
+
+    var tags by remember { mutableStateOf(mutableListOf<String>()) }
+    LaunchedEffect(Unit) {
+        tags = TagManager.getTags(context).toMutableList()
+        if (!tags.contains("전체")) {
+            tags.add("전체")
+        }
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                tags = TagManager.getTags(context).toMutableList()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+
+    Column(
+        modifier = Modifier
+            .navigationBarsPadding()
+    ) {
         TopAppBar(
             title = {
                 Text("정신차려")
@@ -99,7 +127,12 @@ fun HomeView() {
             )
         }
 
-        LazyColumn(modifier = Modifier.weight(1f)) {
+        val listState = rememberLazyListState()
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .weight(1f)
+        ) {
             grouped.forEach { (date, items) ->
                 item {
                     Text(
@@ -175,20 +208,23 @@ fun HomeView() {
                     )
                 }
 
-                TagPicker(selectedTag = selectedTag, onTagSelected = { selectedTag = it })
+                TagPicker(
+                    tags = tags,
+                    selectedTag = selectedTag,
+                    onTagSelected = { selectedTag = it })
             }
 
             // Calculate monthly total for selected month
             val monthInt = selectedMonth.removeSuffix("월").toIntOrNull()
             val filteredMonthlyExpenses = displayExpenses.filter {
-                it.date.monthValue == monthInt
+                it.date.monthValue == monthInt && (selectedTag == "전체" || it.tag == selectedTag)
             }
             val monthlyTotal = filteredMonthlyExpenses.sumOf { it.cost }
 
             // Calculate yearly total for selected year
             val yearInt = selectedYear.removeSuffix("년").toIntOrNull()
             val filteredYearlyExpenses = displayExpenses.filter {
-                it.date.year == yearInt
+                it.date.year == yearInt && (selectedTag == "전체" || it.tag == selectedTag)
             }
             val yearlyTotal = filteredYearlyExpenses.sumOf { it.cost }
 
@@ -210,7 +246,7 @@ fun HomeView() {
                     )
                 }
 
-                MonthPicker(selectedMonth = selectedMonth, onMonthSelected = { selectedMonth = it })
+                MonthPicker(expenses = displayExpenses, selectedMonth = selectedMonth, onMonthSelected = { selectedMonth = it })
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -230,7 +266,7 @@ fun HomeView() {
                     )
                 }
 
-                YearPicker(selectedYear = selectedYear, onYearSelected = { selectedYear = it })
+                YearPicker(expenses = displayExpenses, selectedYear = selectedYear, onYearSelected = { selectedYear = it })
             }
         }
         // Bottom Sheet for adding a new expense
@@ -239,7 +275,7 @@ fun HomeView() {
     if (showInputSheet) {
         ModalBottomSheet(
             onDismissRequest = { showInputSheet = false },
-            modifier = Modifier.fillMaxHeight(0.95f)
+            modifier = Modifier.navigationBarsPadding()
         ) {
             InputView(onSubmit = { showInputSheet = false })
         }
@@ -247,7 +283,7 @@ fun HomeView() {
     if (selectedExpense != null) {
         ModalBottomSheet(
             onDismissRequest = { selectedExpense = null },
-            modifier = Modifier.fillMaxHeight(0.95f)
+            modifier = Modifier.navigationBarsPadding()
         ) {
             EditExpenseView(expense = selectedExpense!!, onSubmit = { selectedExpense = null })
         }
@@ -256,25 +292,28 @@ fun HomeView() {
 
 @Composable
 fun TagPicker(
+    tags: List<String>,
     selectedTag: String,
     onTagSelected: (String) -> Unit
 ) {
-    val context = LocalContext.current
-    val tags = remember { mutableStateOf(TagManager.getTags(context)) }
     var expanded by remember { mutableStateOf(false) }
 
     Box {
         TextButton(onClick = { expanded = true }) {
-            Text(selectedTag)
-            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+            Text(selectedTag, color = MaterialTheme.colorScheme.onSurface)
+            Icon(
+                Icons.Default.ArrowDropDown,
+                tint = MaterialTheme.colorScheme.onSurface,
+                contentDescription = null
+            )
         }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            listOf("전체") + tags.value.forEach { tag ->
+            listOf("전체") + tags.forEach { tag ->
                 DropdownMenuItem(
-                    text = { Text(tag) },
+                    text = { Text(tag, color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         onTagSelected(tag)
                         expanded = false
@@ -287,16 +326,23 @@ fun TagPicker(
 
 @Composable
 fun MonthPicker(
+    expenses: List<Expense>,
     selectedMonth: String,
     onMonthSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val months = (1..12).map { "${it}월" }
+    val months = remember(expenses) {
+        expenses.map { it.date.monthValue }.distinct().sorted().map { "${it}월" }
+    }
 
     Box {
         TextButton(onClick = { expanded = true }) {
-            Text(selectedMonth)
-            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+            Text(selectedMonth, color = MaterialTheme.colorScheme.onSurface)
+            Icon(
+                Icons.Default.ArrowDropDown,
+                tint = MaterialTheme.colorScheme.onSurface,
+                contentDescription = null
+            )
         }
         DropdownMenu(
             expanded = expanded,
@@ -304,7 +350,7 @@ fun MonthPicker(
         ) {
             months.forEach { month ->
                 DropdownMenuItem(
-                    text = { Text(month) },
+                    text = { Text(month, color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         onMonthSelected(month)
                         expanded = false
@@ -317,17 +363,23 @@ fun MonthPicker(
 
 @Composable
 fun YearPicker(
+    expenses: List<Expense>,
     selectedYear: String,
     onYearSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val currentYear = LocalDateTime.now().year
-    val years = (currentYear - 10..currentYear + 1).map { "${it}년" }
+    val years = remember(expenses) {
+        expenses.map { it.date.year }.distinct().sorted().map { "${it}년" }
+    }
 
     Box {
         TextButton(onClick = { expanded = true }) {
-            Text(selectedYear)
-            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+            Text(selectedYear, color = MaterialTheme.colorScheme.onSurface)
+            Icon(
+                Icons.Default.ArrowDropDown,
+                tint = MaterialTheme.colorScheme.onSurface,
+                contentDescription = null
+            )
         }
         DropdownMenu(
             expanded = expanded,
@@ -335,7 +387,7 @@ fun YearPicker(
         ) {
             years.forEach { year ->
                 DropdownMenuItem(
-                    text = { Text(year) },
+                    text = { Text(year, color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         onYearSelected(year)
                         expanded = false
@@ -349,33 +401,6 @@ fun YearPicker(
 @Preview(showBackground = true)
 @Composable
 fun PreviewHomeView() {
-    val expenses = listOf(
-        Expense(cost = 2100, name = "콜라", tag = "아빠 카드", date = LocalDateTime.now().minusDays(1)),
-        Expense(cost = 5000, name = "저녁", tag = "아빠 카드", date = LocalDateTime.now().minusDays(1)),
-        Expense(cost = -500000, name = "아빠 용돈", tag = "내 카드", date = LocalDateTime.now().minusDays(1)),
-        Expense(cost = 14000, name = "간식", tag = "아빠 카드", date = LocalDateTime.now().minusDays(1)),
-        Expense(cost = -500000, name = "은혜 월급", tag = "내 카드", date = LocalDateTime.now().minusDays(1)),
-
-        Expense(cost = -1000000, name = "태강 월세", tag = "내 카드", date = LocalDateTime.now().minusDays(2)),
-        Expense(cost = 7600, name = "저녁", tag = "아빠 카드", date = LocalDateTime.now().minusDays(2)),
-        Expense(cost = 3800, name = "커피", tag = "아빠 카드", date = LocalDateTime.now().minusDays(2)),
-
-        Expense(cost = 14000, name = "간식", tag = "아빠 카드", date = LocalDateTime.now().minusDays(3)),
-        Expense(cost = 7600, name = "저녁", tag = "아빠 카드", date = LocalDateTime.now().minusDays(3)),
-        Expense(cost = 3800, name = "커피", tag = "아빠 카드", date = LocalDateTime.now().minusDays(3)),
-
-        Expense(cost = 14000, name = "간식", tag = "아빠 카드", date = LocalDateTime.now().minusDays(4)),
-        Expense(cost = 7600, name = "저녁", tag = "아빠 카드", date = LocalDateTime.now().minusDays(4)),
-        Expense(cost = 3800, name = "커피", tag = "아빠 카드", date = LocalDateTime.now().minusDays(4)),
-
-        Expense(cost = 14000, name = "간식", tag = "아빠 카드", date = LocalDateTime.now().minusDays(5)),
-        Expense(cost = 7600, name = "저녁", tag = "아빠 카드", date = LocalDateTime.now().minusDays(5)),
-        Expense(cost = 3800, name = "커피", tag = "아빠 카드", date = LocalDateTime.now().minusDays(5)),
-
-        Expense(cost = 1000000, name = "월세", tag = "아빠 카드", date = LocalDateTime.now().minusDays(6)),
-        Expense(cost = 100000, name = "통신비", tag = "아빠 카드", date = LocalDateTime.now().minusDays(6)),
-        Expense(cost = 3800, name = "커피", tag = "아빠 카드", date = LocalDateTime.now().minusDays(6)),
-    )
     AppTheme {
         HomeView()
     }

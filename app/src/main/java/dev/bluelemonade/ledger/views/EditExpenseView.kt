@@ -5,6 +5,8 @@ import android.app.TimePickerDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -15,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.bluelemonade.ledger.comm.TagManager
@@ -27,6 +30,10 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.absoluteValue
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 
 @Composable
 fun EditExpenseView(expense: Expense, onSubmit: () -> Unit = {}) {
@@ -35,6 +42,9 @@ fun EditExpenseView(expense: Expense, onSubmit: () -> Unit = {}) {
     val dao = db.expenseDao()
     val coroutineScope = rememberCoroutineScope()
 
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
     var costText by remember { mutableStateOf(expense.cost.absoluteValue.toString()) }
     var isNegative by remember { mutableStateOf(expense.cost < 0) }
     var nameText by remember { mutableStateOf(expense.name) }
@@ -42,7 +52,6 @@ fun EditExpenseView(expense: Expense, onSubmit: () -> Unit = {}) {
     var showTagMenu by remember { mutableStateOf(false) }
     val tags = remember { mutableStateOf(TagManager.getTags(context)) }
 
-    val dateTime = remember { mutableStateOf(expense.date) }
     val date = remember { mutableStateOf(expense.date.toLocalDate()) }
     val time = remember { mutableStateOf(expense.date.toLocalTime()) }
 
@@ -60,15 +69,22 @@ fun EditExpenseView(expense: Expense, onSubmit: () -> Unit = {}) {
                     if (it.length <= 15 && it.all { c -> c.isDigit() }) costText = it
                 },
                 label = { Text("금액") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusRequester.requestFocus() }
+                ),
                 modifier = Modifier
                     .weight(1f),
                 shape = RoundedCornerShape(10.dp)
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(if (isNegative) "지출" else "수입")
+                Text(if (isNegative) "수입" else "지출")
                 Switch(
-                    checked = !isNegative,
-                    onCheckedChange = { isNegative = !it }
+                    checked = isNegative,
+                    onCheckedChange = { isNegative = it }
                 )
             }
         }
@@ -81,8 +97,12 @@ fun EditExpenseView(expense: Expense, onSubmit: () -> Unit = {}) {
                 if (it.length <= 20) nameText = it
             },
             label = { Text("설명") },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
+            singleLine = true,
             shape = RoundedCornerShape(10.dp)
         )
 
@@ -95,9 +115,15 @@ fun EditExpenseView(expense: Expense, onSubmit: () -> Unit = {}) {
                 label = { Text("태그") },
                 readOnly = true,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showTagMenu = true },
+                    .fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp)
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable {
+                        showTagMenu = true
+                    }
             )
             DropdownMenu(
                 expanded = showTagMenu,
@@ -191,7 +217,7 @@ fun EditExpenseView(expense: Expense, onSubmit: () -> Unit = {}) {
 
                     val updatedExpense = expense.copy(
                         name = nameText,
-                        cost = (if (isNegative) 1 else -1) * costText.toInt(),
+                        cost = (if (isNegative) -1 else 1) * costText.toInt(),
                         tag = finalTag,
                         date = combinedDateTime
                     )
